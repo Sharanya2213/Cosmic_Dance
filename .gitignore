@@ -1,0 +1,30 @@
+# Compiled executables
+*.exe
+*.o
+*.out
+*.a
+*.so
+*.dll
+
+# Build directories
+/build/
+/dist/
+/bin/
+/obj/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# OS files
+.vs/
+*.vcxproj.user
+
+# Local configuration
+*.local
+config.local

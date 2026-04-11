@@ -8,7 +8,7 @@ LDFLAGS = -lopengl32 -lglu32 -lfreeglut
 # Output executables
 TARGET1 = chapter1_chaos.exe
 TARGET2 = chapter2_bigbang.exe
-TARGET3 = chapter3_accurate_solar.exe
+TARGET3 = chapter3_solar-system.exe
 TARGET4 = nebula_genesis.exe
 TARGET5 = galaxy_milkyway.exe
 TARGET6 = cosmic_observer.exe
@@ -19,7 +19,7 @@ TARGET9 = first_cells.exe
 # Source files
 SOURCES1 = chaos_darkness.cpp
 SOURCES2 = chapter2_bigbang.cpp
-SOURCES3 = chapter3_accurate_solar.cpp
+SOURCES3 = chapter3_solar-system.cpp
 SOURCES4 = nebula_genesis.cpp
 SOURCES5 = galaxy_milkyway.cpp
 SOURCES6 = cosmic_observer.cpp

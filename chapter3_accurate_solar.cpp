@@ -1,396 +1,267 @@
 #include <GL/glut.h>
 #include <cmath>
+#include <vector>
+#include <cstdio>
 #include <cstdlib>
-#include <ctime>
-#include <iostream>
 
-// ============================================================================
-// REAL SOLAR SYSTEM DATA (Scaled for visualization)
-// ============================================================================
-struct PlanetData {
-    const char* name;
-    float orbitRadius;      // Distance from sun (AU * scale)
-    float size;             // Planet radius
-    float rotationPeriod;   // How fast it spins
-    float orbitalPeriod;    // Time to orbit sun (in seconds at 1x speed)
-    float tiltAngle;        // Axial tilt in degrees
-    float r, g, b;          // Color
-    bool hasRings;          // Saturn-like rings?
-    float ringInnerRadius;  // Ring size
-    float ringOuterRadius;
+using namespace std;
+
+const int WINDOW_WIDTH = 1200;
+const int WINDOW_HEIGHT = 900;
+const float ANIMATION_DURATION = 12.0f;
+
+struct Vec2 {
+    float x, y;
+    Vec2() : x(0), y(0) {}
+    Vec2(float x, float y) : x(x), y(y) {}
 };
 
-// Real solar system scaled down
-PlanetData planets[] = {
-    {"Mercury", 2.8f,   0.12f, 58.65f,  0.24f,   0.0f,   0.7f, 0.6f, 0.5f,  false, 0, 0},
-    {"Venus",   4.2f,   0.18f, 243.0f,  0.62f,  177.0f,   1.0f, 0.9f, 0.7f,  false, 0, 0},
-    {"Earth",   5.8f,   0.20f,  0.997f, 1.0f,   23.4f,    0.2f, 0.6f, 1.0f,  false, 0, 0},
-    {"Mars",    7.5f,   0.15f,  1.03f,  1.88f,  25.2f,    1.0f, 0.3f, 0.1f,  false, 0, 0},
-    {"Jupiter", 11.0f,  0.50f,  0.41f,  11.86f, 3.1f,     0.8f, 0.7f, 0.5f,  false, 0, 0},
-    {"Saturn",  14.5f,  0.42f,  0.43f,  29.46f, 26.7f,    0.9f, 0.8f, 0.6f,  true,  0.65f, 0.95f},
-    {"Uranus",  18.0f,  0.35f,  0.72f,  84.01f, 97.8f,    0.4f, 0.9f, 1.0f,  false, 0, 0},
-    {"Neptune", 21.0f,  0.35f,  0.67f, 164.8f,  28.3f,    0.2f, 0.4f, 1.0f,  false, 0, 0},
+struct Particle {
+    Vec2 pos;
+    Vec2 vel;
+    float size;
+    float life;
 };
 
-// ============================================================================
-// CUSTOM MATH
-// ============================================================================
-struct Vec3 {
-    float x, y, z;
-    Vec3() : x(0), y(0), z(0) {}
-    Vec3(float x, float y, float z) : x(x), y(y), z(z) {}
-    Vec3 operator+(const Vec3& v) const { return Vec3(x + v.x, y + v.y, z + v.z); }
-    Vec3 operator*(float s) const { return Vec3(x * s, y * s, z * s); }
-};
+vector<Particle> fluidParticles;
+vector<Vec2> cellVertices;
+vector<Vec2> nucleusVertices;
+vector<Vec2> organelles;
 
-// ============================================================================
-// GLOBAL STATE
-// ============================================================================
 float globalTime = 0.0f;
-float deltaTime = 0.016f;
-float timeScale = 1.0f;  // Speed multiplier
+float cellX = 0.0f;
+float cellY = 0.0f;
 
-// ============================================================================
-// PROCEDURAL GEOMETRY
-// ============================================================================
-void drawSphere(float radius, int subdivisions) {
-    for (int i = 0; i < subdivisions; ++i) {
-        float lat1 = -1.5708f + (i / (float)subdivisions) * 3.14159f;
-        float lat2 = -1.5708f + ((i + 1) / (float)subdivisions) * 3.14159f;
-        
-        glBegin(GL_QUAD_STRIP);
-        for (int j = 0; j <= subdivisions; ++j) {
-            float lng = -3.14159f + (j / (float)subdivisions) * 6.28318f;
-            
-            float x1 = radius * cosf(lat1) * cosf(lng);
-            float y1 = radius * sinf(lat1);
-            float z1 = radius * cosf(lat1) * sinf(lng);
-            
-            float x2 = radius * cosf(lat2) * cosf(lng);
-            float y2 = radius * sinf(lat2);
-            float z2 = radius * cosf(lat2) * sinf(lng);
-            
-            glNormal3f(x1 / radius, y1 / radius, z1 / radius);
-            glVertex3f(x1, y1, z1);
-            
-            glNormal3f(x2 / radius, y2 / radius, z2 / radius);
-            glVertex3f(x2, y2, z2);
-        }
-        glEnd();
+const float BASE_CELL_RADIUS = 1.2f;
+const float NUCLEUS_RADIUS = 0.35f;
+const int NUM_CELL_VERTICES = 40;
+const int NUM_NUCLEUS_VERTICES = 25;
+
+void generateFluidParticles() {
+    fluidParticles.clear();
+    for (int i = 0; i < 800; i++) {
+        Particle p;
+        p.pos = Vec2((rand() % 1000 - 500) * 0.01f, (rand() % 1000 - 500) * 0.01f);
+        p.vel = Vec2((rand() % 100 - 50) * 0.0001f, (rand() % 100 - 50) * 0.0001f);
+        p.size = 0.02f + (rand() % 20) * 0.001f;
+        p.life = 1.0f;
+        fluidParticles.push_back(p);
     }
 }
 
-void drawOrbit(float radius, int segments = 200) {
-    glDisable(GL_LIGHTING);
-    glColor4f(1.0f, 1.0f, 1.0f, 0.3f);
-    glLineWidth(1.0f);
-    
-    glBegin(GL_LINE_LOOP);
-    for (int i = 0; i < segments; ++i) {
-        float angle = (i / (float)segments) * 6.28318f;
-        glVertex3f(radius * cosf(angle), 0.0f, radius * sinf(angle));
+void generateOrganelles() {
+    organelles.clear();
+    organelles.push_back(Vec2(-0.15f, 0.1f));
+    organelles.push_back(Vec2(0.2f, -0.05f));
+    organelles.push_back(Vec2(-0.05f, -0.15f));
+    organelles.push_back(Vec2(0.1f, 0.15f));
+    organelles.push_back(Vec2(0.0f, 0.0f));
+}
+
+void generateCellVertices() {
+    cellVertices.clear();
+    for (int i = 0; i < NUM_CELL_VERTICES; i++) {
+        float angle = (i / (float)NUM_CELL_VERTICES) * 2.0f * 3.14159f;
+        float distortion = 0.9f + 0.15f * sin(angle * 3 + globalTime * 1.5f) + 0.1f * sin(angle * 7 - globalTime * 0.8f) + 0.08f * cos(angle * 2 + globalTime * 0.5f);
+        float radius = BASE_CELL_RADIUS * distortion;
+        float pulse = 1.0f + sin(globalTime * 2.0f) * 0.05f;
+        radius *= pulse;
+        Vec2 vertex;
+        vertex.x = cellX + cos(angle) * radius;
+        vertex.y = cellY + sin(angle) * radius;
+        cellVertices.push_back(vertex);
     }
+}
+
+void generateNucleusVertices() {
+    nucleusVertices.clear();
+    for (int i = 0; i < NUM_NUCLEUS_VERTICES; i++) {
+        float angle = (i / (float)NUM_NUCLEUS_VERTICES) * 2.0f * 3.14159f;
+        float distortion = 0.85f + 0.1f * sin(angle * 4 + globalTime * 1.2f) + 0.08f * sin(angle * 2 - globalTime * 0.6f);
+        float radius = NUCLEUS_RADIUS * distortion;
+        Vec2 vertex;
+        vertex.x = cellX + cos(angle) * radius;
+        vertex.y = cellY + sin(angle) * radius;
+        nucleusVertices.push_back(vertex);
+    }
+}
+
+void updateFluidParticles(float dt) {
+    for (auto& p : fluidParticles) {
+        p.pos.x += p.vel.x * dt;
+        p.pos.y += p.vel.y * dt;
+        p.vel.x += (rand() % 100 - 50) * 0.00001f;
+        p.vel.y += (rand() % 100 - 50) * 0.00001f;
+        p.vel.x *= 0.99f;
+        p.vel.y *= 0.99f;
+        if (p.pos.x > 5.0f) p.pos.x = -5.0f;
+        if (p.pos.x < -5.0f) p.pos.x = 5.0f;
+        if (p.pos.y > 5.0f) p.pos.y = -5.0f;
+        if (p.pos.y < -5.0f) p.pos.y = 5.0f;
+    }
+}
+
+void updateCellPosition() {
+    cellX = 0.2f * sin(globalTime * 0.3f);
+    cellY = 0.15f * cos(globalTime * 0.25f);
+}
+
+void drawGradientBackground() {
+    glDisable(GL_BLEND);
+    glBegin(GL_QUADS);
+    glColor3f(0.1f, 0.25f, 0.2f);
+    glVertex2f(-5.0f, 5.0f);
+    glVertex2f(5.0f, 5.0f);
+    glColor3f(0.15f, 0.3f, 0.25f);
+    glVertex2f(5.0f, -5.0f);
+    glVertex2f(-5.0f, -5.0f);
     glEnd();
-    
-    glLineWidth(1.0f);
-    glEnable(GL_LIGHTING);
 }
 
-void drawRings(float innerRadius, float outerRadius) {
-    glDisable(GL_LIGHTING);
+void drawFluidParticles() {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glColor4f(0.9f, 0.8f, 0.6f, 0.6f);
-    
-    int segments = 100;
-    float layers = 10;
-    
-    for (int layer = 0; layer < layers; ++layer) {
-        float r_inner = innerRadius + (layer / layers) * (outerRadius - innerRadius);
-        float r_outer = innerRadius + ((layer + 1) / layers) * (outerRadius - innerRadius);
-        
-        glBegin(GL_QUAD_STRIP);
-        for (int i = 0; i <= segments; ++i) {
-            float angle = (i / (float)segments) * 6.28318f;
-            float a = 0.5f * (1.0f - layer / layers);  // Fade outer rings
-            
-            glColor4f(0.9f, 0.8f, 0.6f, a);
-            glVertex3f(r_inner * cosf(angle), 0.02f, r_inner * sinf(angle));
-            glVertex3f(r_outer * cosf(angle), 0.01f, r_outer * sinf(angle));
-        }
-        glEnd();
-    }
-    
-    glDisable(GL_BLEND);
-    glEnable(GL_LIGHTING);
-}
-
-// ============================================================================
-// STARFIELD
-// ============================================================================
-void drawStarfield() {
-    glDisable(GL_LIGHTING);
-    glPointSize(1.0f);
-    glBegin(GL_POINTS);
-    
-    glColor3f(0.8f, 0.8f, 1.0f);
-    for (int i = 0; i < 5000; ++i) {
-        float x = -80.0f + (rand() % 16000) / 100.0f;
-        float y = -50.0f + (rand() % 10000) / 100.0f;
-        float z = -80.0f + (rand() % 16000) / 100.0f;
-        
-        float brightness = 0.5f + (rand() % 100) / 100.0f * 0.5f;
-        glColor3f(brightness, brightness, brightness + 0.1f);
-        glVertex3f(x, y, z);
-    }
-    glEnd();
-    glEnable(GL_LIGHTING);
-}
-
-// ============================================================================
-// CENTRAL SUN - Accurate Like Reference Images
-// ============================================================================
-void drawSun() {
-    glPushMatrix();
-    
-    // Main sun sphere
-    glColor3f(1.0f, 0.95f, 0.7f);
-    drawSphere(1.2f, 40);
-    
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-    glDisable(GL_LIGHTING);
-    
-    // Corona layer 1: bright yellow
-    glColor4f(1.0f, 0.9f, 0.2f, 0.7f);
-    drawSphere(1.8f, 30);
-    
-    // Corona layer 2: orange glow
-    glColor4f(1.0f, 0.6f, 0.1f, 0.5f);
-    drawSphere(2.8f, 20);
-    
-    // Corona layer 3: dim outer glow
-    glColor4f(1.0f, 0.3f, 0.0f, 0.2f);
-    drawSphere(4.0f, 16);
-    
-    // Particle burst effect
     glPointSize(2.0f);
     glBegin(GL_POINTS);
-    for (int i = 0; i < 800; ++i) {
-        float angle = globalTime * timeScale * 2.0f + i * 0.008f;
-        float elevation = (i / 800.0f) * 6.28318f;
-        float radius = 1.8f + 1.5f * sinf(globalTime * timeScale + i * 0.05f);
-        
-        float x = radius * cosf(elevation) * cosf(angle);
-        float y = radius * sinf(elevation);
-        float z = radius * cosf(elevation) * sinf(angle);
-        
-        float intensity = 1.0f - (radius / 3.5f);
-        glColor4f(1.0f, 0.8f, 0.3f * intensity, 0.8f * intensity);
-        glVertex3f(x, y, z);
+    for (const auto& p : fluidParticles) {
+        glColor4f(0.6f, 0.7f, 0.5f, 0.3f);
+        glVertex2f(p.pos.x, p.pos.y);
     }
     glEnd();
-    
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glPointSize(1.0f);
     glDisable(GL_BLEND);
-    glEnable(GL_LIGHTING);
-    
-    glPopMatrix();
 }
 
-// ============================================================================
-// DUST/NEBULA EFFECT AROUND ORBITS
-// ============================================================================
-void drawDustClouds() {
-    glDisable(GL_LIGHTING);
+void drawCell() {
     glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-    glPointSize(0.8f);
-    
-    glBegin(GL_POINTS);
-    for (int i = 0; i < 20000; ++i) {
-        float angle = globalTime * timeScale * 0.1f + (rand() % 360) * 0.017f;
-        float radius = 3.0f + (rand() % 400) / 100.0f;
-        float height = (rand() % 100) / 100.0f - 0.5f;
-        
-        float x = radius * cosf(angle);
-        float z = radius * sinf(angle);
-        float y = height * 0.3f;
-        
-        float dist_from_orbit = fabs(sqrt(x*x + z*z) - radius);
-        float alpha = 0.1f * expf(-dist_from_orbit * dist_from_orbit / 0.5f);
-        
-        // Dust color: brownish
-        glColor4f(0.7f, 0.6f, 0.4f, alpha);
-        glVertex3f(x, y, z);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glColor4f(0.2f, 0.7f, 0.5f, 0.75f);
+    glBegin(GL_POLYGON);
+    for (const auto& v : cellVertices) {
+        glVertex2f(v.x, v.y);
     }
     glEnd();
-    
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glDisable(GL_BLEND);
-    glEnable(GL_LIGHTING);
-}
-
-// ============================================================================
-// PLANET RENDERING
-// ============================================================================
-void drawPlanets() {
-    int numPlanets = sizeof(planets) / sizeof(PlanetData);
-    
-    for (int i = 0; i < numPlanets; ++i) {
-        PlanetData& p = planets[i];
-        
-        // Draw orbital path
-        drawOrbit(p.orbitRadius);
-        
-        // Calculate position in orbit
-        float orbitalPosition = fmodf(globalTime * timeScale / p.orbitalPeriod, 1.0f) * 6.28318f;
-        float x = p.orbitRadius * cosf(orbitalPosition);
-        float z = p.orbitRadius * sinf(orbitalPosition);
-        
-        glPushMatrix();
-        glTranslatef(x, 0.0f, z);
-        
-        // Apply axial tilt
-        glRotatef(p.tiltAngle, cosf(orbitalPosition), 0.0f, sinf(orbitalPosition));
-        
-        // Rotation of planet
-        glRotatef(globalTime * timeScale * 360.0f / p.rotationPeriod, 0.0f, 1.0f, 0.0f);
-        
-        // Draw planet
-        glColor3f(p.r, p.g, p.b);
-        drawSphere(p.size, 32);
-        
-        // Draw rings if applicable
-        if (p.hasRings) {
-            glPushMatrix();
-            glRotatef(p.tiltAngle * 0.5f, 1.0f, 0.0f, 0.0f);
-            drawRings(p.ringInnerRadius, p.ringOuterRadius);
-            glPopMatrix();
-        }
-        
-        glPopMatrix();
+    glColor3f(0.15f, 0.5f, 0.35f);
+    glLineWidth(1.5f);
+    glBegin(GL_LINE_LOOP);
+    for (const auto& v : cellVertices) {
+        glVertex2f(v.x, v.y);
     }
+    glEnd();
+    glLineWidth(1.0f);
+    glColor4f(0.9f, 0.85f, 0.2f, 0.8f);
+    glBegin(GL_POLYGON);
+    for (const auto& v : nucleusVertices) {
+        glVertex2f(v.x, v.y);
+    }
+    glEnd();
+    glColor3f(0.7f, 0.65f, 0.1f);
+    glLineWidth(1.0f);
+    glBegin(GL_LINE_LOOP);
+    for (const auto& v : nucleusVertices) {
+        glVertex2f(v.x, v.y);
+    }
+    glEnd();
+    glPointSize(4.0f);
+    glColor4f(1.0f, 0.5f, 0.2f, 0.8f);
+    glBegin(GL_POINTS);
+    for (const auto& org : organelles) {
+        glVertex2f(cellX + org.x, cellY + org.y);
+    }
+    glEnd();
+    glPointSize(1.0f);
+    glDisable(GL_BLEND);
 }
 
-// ============================================================================
-// DISPLAY & UPDATE
-// ============================================================================
-void display() {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    
-    // Dynamic cinematic camera
-    float camDistance = 35.0f;
-    float camAngle = globalTime * timeScale * 0.15f;
-    float camHeight = 8.0f + 3.0f * sinf(globalTime * timeScale * 0.3f);
-    
-    gluLookAt(
-        camDistance * cosf(camAngle), 
-        camHeight, 
-        camDistance * sinf(camAngle),
-        0.0f, 0.0f, 0.0f,
-        0.0f, 1.0f, 0.0f
-    );
-    
-    // Render scene
-    drawStarfield();
-    drawDustClouds();
-    drawSun();
-    drawPlanets();
-    
-    glutSwapBuffers();
+void drawNucleolus() {
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glPointSize(3.0f);
+    glColor4f(0.95f, 0.9f, 0.3f, 0.9f);
+    glBegin(GL_POINTS);
+    glVertex2f(cellX, cellY);
+    glEnd();
+    glPointSize(1.0f);
+    glDisable(GL_BLEND);
 }
 
 void reshape(int w, int h) {
-    if (h == 0) h = 1;
     glViewport(0, 0, w, h);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(50.0f, (float)w / (float)h, 0.1f, 500.0f);
+    gluOrtho2D(-5.0f, 5.0f, -5.0f, 5.0f);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
 }
 
-void idle() {
-    globalTime += deltaTime;
+void display() {
+    glClear(GL_COLOR_BUFFER_BIT);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    drawGradientBackground();
+    drawFluidParticles();
+    drawCell();
+    drawNucleolus();
+    glutSwapBuffers();
+}
+
+void timer(int value) {
+    float dt = 0.016f;
+    globalTime += dt;
+    if (globalTime > ANIMATION_DURATION) {
+        globalTime = 0.0f;
+    }
+    updateFluidParticles(dt);
+    updateCellPosition();
+    generateCellVertices();
+    generateNucleusVertices();
     glutPostRedisplay();
+    glutTimerFunc(16, timer, 0);
+}
+
+void init() {
+    glClearColor(0.15f, 0.3f, 0.25f, 1.0f);
+    glDisable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_POINT_SMOOTH);
+    glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
+    glEnable(GL_LINE_SMOOTH);
+    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+    glEnable(GL_POLYGON_SMOOTH);
+    glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+    generateFluidParticles();
+    generateOrganelles();
+    generateCellVertices();
+    generateNucleusVertices();
+    printf("=== FIRST LIFE ON EARTH ==================\n");
+    printf("Microscopic view of a primitive cell\n");
+    printf("In ancient Earth's primordial oceans\n");
+    printf("Observe organic motion and life\n");
+    printf("Controls: ESC to exit | 12 sec loop\n");
+    printf("======================================\n");
 }
 
 void keyboard(unsigned char key, int x, int y) {
-    switch (key) {
-        case '1':
-            timeScale = 0.5f;
-            std::cout << "Speed: 0.5x (Slow, Realistic)" << std::endl;
-            break;
-        case '2':
-            timeScale = 1.0f;
-            std::cout << "Speed: 1.0x (Normal)" << std::endl;
-            break;
-        case '3':
-            timeScale = 2.0f;
-            std::cout << "Speed: 2.0x (Fast)" << std::endl;
-            break;
-        case '4':
-            timeScale = 5.0f;
-            std::cout << "Speed: 5.0x (Very Fast)" << std::endl;
-            break;
-        case ' ':
-            globalTime = 0.0f;
-            std::cout << "Reset to start" << std::endl;
-            break;
-        case 27:  // ESC
-            exit(0);
-            break;
-    }
+    if (key == 27) exit(0);
 }
 
-// ============================================================================
-// MAIN
-// ============================================================================
 int main(int argc, char** argv) {
     glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
-    glutInitWindowSize(1600, 900);
-    glutCreateWindow("ACCURATE SOLAR SYSTEM - 8 Planets with Real Orbital Mechanics");
-    
-    glClearColor(0.0f, 0.0f, 0.01f, 1.0f);
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
-    glEnable(GL_COLOR_MATERIAL);
-    glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-    glEnable(GL_BLEND);
-    
-    // Setup lighting
-    GLfloat light_pos[] = {0.0f, 2.0f, 1.0f, 0.0f};
-    GLfloat light_ambient[] = {0.25f, 0.25f, 0.25f, 1.0f};
-    GLfloat light_diffuse[] = {1.0f, 1.0f, 1.0f, 1.0f};
-    
-    glLightfv(GL_LIGHT0, GL_POSITION, light_pos);
-    glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
-    
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
+    glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
+    glutCreateWindow("First Life on Earth - Microscopic View");
+    init();
+    glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluOrtho2D(-5.0f, 5.0f, -5.0f, 5.0f);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
-    glutIdleFunc(idle);
     glutKeyboardFunc(keyboard);
-    
-    std::cout << "====== ACCURATE SOLAR SYSTEM ======" << std::endl;
-    std::cout << "Press 1 - Speed: 0.5x (Realistic)" << std::endl;
-    std::cout << "Press 2 - Speed: 1.0x (Normal)" << std::endl;
-    std::cout << "Press 3 - Speed: 2.0x (Fast)" << std::endl;
-    std::cout << "Press 4 - Speed: 5.0x (Very Fast)" << std::endl;
-    std::cout << "Press SPACE - Reset animation" << std::endl;
-    std::cout << "Press ESC - Exit" << std::endl;
-    std::cout << std::endl;
-    std::cout << "All planets have REAL orbital periods:" << std::endl;
-    std::cout << "  Mercury: 0.24 seconds (fastest)" << std::endl;
-    std::cout << "  Earth:   1.0 second (baseline)" << std::endl;
-    std::cout << "  Saturn:  29.46 seconds (with RINGS)" << std::endl;
-    std::cout << "  Neptune: 164.8 seconds (slowest)" << std::endl;
-    
+    glutTimerFunc(16, timer, 0);
     glutMainLoop();
     return 0;
 }
-

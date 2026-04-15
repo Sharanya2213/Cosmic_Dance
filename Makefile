@@ -17,11 +17,11 @@ TARGET8 = first_cells.exe
 TARGET9 = multicellular_organism.exe
 TARGET10 = chapter10_early_organism.exe
 TARGET11 = chapter11_complex_organism.exe
-TARGET12 = chapter3_ocean_land.exe
+TARGET12 = chapter12_ocean_to_land.exe
 TARGET13 = chapter13_land_volcanos.exe
 TARGET14 = chapter14_dinosaur_era.exe
-TARGET15 = chapter15_asteroid_impact.exe
-TARGET16 = chapter16_mammalian_rise.exe
+TARGET15 = chapter15_mammalian_rise.exe
+TARGET17 = chapter17_humanity_observes.exe
 
 # Source files
 SOURCES1 = chaos_darkness.cpp
@@ -35,11 +35,11 @@ SOURCES8 = first_cells.cpp
 SOURCES9 = multicellular_organism.cpp
 SOURCES10 = chapter10_early_organism.cpp
 SOURCES11 = chapter11_complex_organism.cpp
-SOURCES12 = chapter3_ocean_land.cpp
+SOURCES12 = chapter12_ocean_to_land.cpp
 SOURCES13 = chapter13_land_volcanos.cpp
 SOURCES14 = chapter14_dinosaur_era.cpp
-SOURCES15 = chapter15_asteroid_impact.cpp
-SOURCES16 = chapter16_mammalian_rise.cpp
+SOURCES15 = chapter15_mammalian_rise.cpp
+SOURCES17 = chapter17_humanity_observes.cpp
 
 OBJECTS1 = $(SOURCES1:.cpp=.o)
 OBJECTS2 = $(SOURCES2:.cpp=.o)
@@ -56,10 +56,10 @@ OBJECTS12 = $(SOURCES12:.cpp=.o)
 OBJECTS13 = $(SOURCES13:.cpp=.o)
 OBJECTS14 = $(SOURCES14:.cpp=.o)
 OBJECTS15 = $(SOURCES15:.cpp=.o)
-OBJECTS16 = $(SOURCES16:.cpp=.o)
+OBJECTS17 = $(SOURCES17:.cpp=.o)
 
 # Default target - build all
-all: $(TARGET1) $(TARGET2) $(TARGET3) $(TARGET4) $(TARGET5) $(TARGET6) $(TARGET7) $(TARGET8) $(TARGET9) $(TARGET10) $(TARGET11) $(TARGET12) $(TARGET13) $(TARGET14) $(TARGET15) $(TARGET16)
+all: $(TARGET1) $(TARGET2) $(TARGET3) $(TARGET4) $(TARGET5) $(TARGET6) $(TARGET7) $(TARGET8) $(TARGET9) $(TARGET10) $(TARGET11) $(TARGET12) $(TARGET13) $(TARGET14) $(TARGET15) $(TARGET17)
 
 # Linking chapters
 $(TARGET1): $(OBJECTS1)
@@ -107,7 +107,7 @@ $(TARGET14): $(OBJECTS14)
 $(TARGET15): $(OBJECTS15)
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
-$(TARGET16): $(OBJECTS16)
+$(TARGET17): $(OBJECTS17)
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
 # Compilation
@@ -125,6 +125,10 @@ run2: $(TARGET2)
 # Run Accurate Solar System
 run3: $(TARGET3)
 	./$(TARGET3)
+
+# Run Chapter 13: Volcanic Island
+run13: $(TARGET13)
+	./$(TARGET13)
 
 # Run Nebula Genesis
 run4: $(TARGET4)
@@ -170,16 +174,16 @@ run13: $(TARGET13)
 run14: $(TARGET14)
 	./$(TARGET14)
 
-# Run Asteroid Impact
+# Run Mammalian Rise
 run15: $(TARGET15)
 	./$(TARGET15)
 
-# Run Mammalian Rise
-run16: $(TARGET16)
-	./$(TARGET16)
+# Run Humanity Observes the Beginning
+run17: $(TARGET17)
+	./$(TARGET17)
 
 # Clean build files
 clean:
-	del $(OBJECTS1) $(OBJECTS2) $(OBJECTS3) $(OBJECTS4) $(OBJECTS5) $(OBJECTS6) $(OBJECTS7) $(OBJECTS8) $(OBJECTS9) $(OBJECTS10) $(OBJECTS11) $(OBJECTS12) $(OBJECTS13) $(OBJECTS14) $(OBJECTS15) $(OBJECTS16) $(TARGET1) $(TARGET2) $(TARGET3) $(TARGET4) $(TARGET5) $(TARGET6) $(TARGET7) $(TARGET8) $(TARGET9) $(TARGET10) $(TARGET11) $(TARGET12) $(TARGET13) $(TARGET14) $(TARGET15) $(TARGET16) 2>nul
+	del $(OBJECTS1) $(OBJECTS2) $(OBJECTS3) $(OBJECTS4) $(OBJECTS5) $(OBJECTS6) $(OBJECTS7) $(OBJECTS8) $(OBJECTS9) $(OBJECTS10) $(OBJECTS11) $(OBJECTS12) $(OBJECTS13) $(OBJECTS14) $(OBJECTS15) $(OBJECTS17) $(TARGET1) $(TARGET2) $(TARGET3) $(TARGET4) $(TARGET5) $(TARGET6) $(TARGET7) $(TARGET8) $(TARGET9) $(TARGET10) $(TARGET11) $(TARGET12) $(TARGET13) $(TARGET14) $(TARGET15) $(TARGET17) 2>nul
 # Phony targets
-.PHONY: all run1 run2 run3 run4 run5 run6 run7 run8 run9 run10 run11 run12 run13 run14 run15 run16 clean
+.PHONY: all run1 run2 run3 run4 run5 run6 run7 run8 run9 run10 run11 run12 run13 run14 run15 run17 clean

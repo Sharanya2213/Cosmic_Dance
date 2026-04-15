@@ -1,271 +1,529 @@
 #include <GL/glut.h>
 #include <cmath>
+#include <vector>
 #include <cstdlib>
 #include <cstdio>
-#include <vector>
 
 float globalTime = 0.0f;
 
-// Volcano structure
+// ============================================================================
+// STRUCTURES
+// ============================================================================
+
+struct Amphibian {
+    float x, z;
+    float dir;
+    float speed;
+};
+
+struct Tree {
+    float x, z;
+    float height;
+};
+
 struct Volcano {
     float x, z;
-    float height;
-    float eruptionIntensity;
-};
-
-struct Gymnosperm {
-    float x, z;
+    float radius;
     float height;
 };
 
+struct SmokeParticle {
+    float x, y, z;
+    float vx, vy, vz;
+    float life;
+    float age;
+};
+
+struct Star {
+    float x, y, z;
+    float brightness;
+};
+
+std::vector<Amphibian> amphibians;
+std::vector<Tree> trees;
 std::vector<Volcano> volcanoes;
-std::vector<Gymnosperm> gymnosperms;
+std::vector<SmokeParticle> smoke;
+std::vector<Star> stars;
 
-void initializeVolcanoes() {
+// ============================================================================
+// ISLAND HEIGHT MAP (CIRCULAR ISLAND)
+// ============================================================================
+
+float getIslandHeight(float x, float z) {
+    float dist = sqrtf(x*x + z*z);
+    
+    // Island peaks in center, slopes to edges
+    float islandShape = sinf(dist * 0.2f) * 0.5f;
+    
+    // Additional terrain variation
+    float h = islandShape;
+    h += sinf(x * 0.15f) * 0.2f;
+    h += cosf(z * 0.18f) * 0.2f;
+    
+    // Smooth falloff at edges
+    if (dist > 20.0f) {
+        h *= (25.0f - dist) / 5.0f;
+    }
+    
+    return h;
+}
+
+// ============================================================================
+// INITIALIZATION
+// ============================================================================
+
+void initAmphibians() {
+    amphibians.clear();
+    for (int i = 0; i < 10; i++) {
+        Amphibian a;
+        a.x = (rand() % 300 - 150) / 10.0f;
+        a.z = (rand() % 300 - 150) / 10.0f;
+        a.dir = rand() % 360;
+        a.speed = 0.008f + (rand() % 5) / 1000.0f;
+        float dist = sqrtf(a.x*a.x + a.z*a.z);
+        if (dist < 18.0f) amphibians.push_back(a);
+    }
+}
+
+void initTrees() {
+    trees.clear();
+    srand(42);  // Fixed seed for consistent placement
+    
+    // Create DENSE forest of palm trees around island
+    for (int angle = 0; angle < 360; angle += 10) {
+        float ang_rad = angle * 3.14159f / 180.0f;
+        for (float dist = 2.0f; dist < 18.0f; dist += 1.5f) {
+            for (int i = 0; i < 2; i++) {
+                float x = cosf(ang_rad) * dist + (rand() % 40 - 20) / 10.0f;
+                float z = sinf(ang_rad) * dist + (rand() % 40 - 20) / 10.0f;
+                float check_dist = sqrtf(x*x + z*z);
+                
+                if (check_dist < 19.0f) {
+                    Tree t;
+                    t.x = x;
+                    t.z = z;
+                    t.height = 5.0f + (rand() % 40) / 100.0f;  // Taller: 5.0-5.4 units (palm trees)
+                    trees.push_back(t);
+                }
+            }
+        }
+    }
+    printf("Initialized %d trees\n", (int)trees.size());
+}
+
+void initVolcanoes() {
     volcanoes.clear();
-    volcanoes.push_back({-8.0f, -5.0f, 5.5f, 0.7f});
-    volcanoes.push_back({0.0f, 0.0f, 6.5f, 0.5f});
-    volcanoes.push_back({8.0f, -4.0f, 5.2f, 0.6f});
+    // Single prominent volcano at island EDGE - opposite side
+    volcanoes.push_back({-14.0f, -14.0f, 4.0f, 14.0f});
 }
 
-void initializeGymnosperms() {
-    gymnosperms.clear();
-    // Create a large island formation with HUGE pine trees
-    // Center cluster (main island)
-    for (int i = 0; i < 25; i++) {
-        float angle = (i / 25.0f) * 6.283f;
-        float distance = 3.0f + (rand() % 50) / 20.0f;
-        float x = 0.0f + cosf(angle) * distance;
-        float z = 0.0f + sinf(angle) * distance;
-        float h = 3.5f + (rand() % 50) / 100.0f;
-        gymnosperms.push_back({x, z, h});
-    }
-    // Left island cluster
-    for (int i = 0; i < 15; i++) {
-        float x = -8.0f + (rand() % 40) / 20.0f;
-        float z = -5.0f + (rand() % 40) / 20.0f;
-        float h = 3.2f + (rand() % 40) / 100.0f;
-        gymnosperms.push_back({x, z, h});
-    }
-    // Right island cluster
-    for (int i = 0; i < 15; i++) {
-        float x = 8.0f + (rand() % 40) / 20.0f;
-        float z = -4.0f + (rand() % 40) / 20.0f;
-        float h = 3.0f + (rand() % 40) / 100.0f;
-        gymnosperms.push_back({x, z, h});
+void initStars() {
+    stars.clear();
+    srand(123);
+    // Create ~200 stars scattered across the sky
+    for (int i = 0; i < 200; i++) {
+        Star s;
+        s.x = (rand() % 2000 - 1000) / 100.0f;  // -10 to 10 in x
+        s.y = (rand() % 1000 + 500) / 100.0f;   // 5 to 15 in y (high up)
+        s.z = (rand() % 2000 - 1000) / 100.0f;  // -10 to 10 in z
+        s.brightness = 0.3f + (rand() % 70) / 100.0f;  // 0.3 to 1.0
+        stars.push_back(s);
     }
 }
 
-// Draw a gymnosperm (HUGE cone-shaped tree)
-void drawGymnosperm(float x, float z, float height) {
-    glPushMatrix();
-    glTranslatef(x, 0.0f, z);
+// ============================================================================
+// DRAWING FUNCTIONS
+// ============================================================================
+
+void drawTerrain() {
+    int gridSize = 40;
+    float cellSize = 60.0f / gridSize;
     
-    // Trunk (large cylinder)
-    GLUquadric* quad = gluNewQuadric();
-    glColor4f(0.5f, 0.3f, 0.1f, 0.95f);
-    gluCylinder(quad, 0.35f, 0.25f, height * 0.2f, 12, 12);
-    
-    // Multiple cone layers for dense foliage
-    // Layer 1 - base
-    glPushMatrix();
-    glTranslatef(0.0f, height * 0.2f, 0.0f);
-    glColor4f(0.15f, 0.55f, 0.15f, 0.90f);
-    
-    float sway = sinf(globalTime * 0.8f + x * 0.05f) * 5.0f;
-    glRotatef(sway, 0.0f, 0.0f, 1.0f);
-    
-    glutSolidCone(height * 0.5f, height * 0.45f, 20, 20);
-    glPopMatrix();
-    
-    // Layer 2 - middle
-    glPushMatrix();
-    glTranslatef(0.0f, height * 0.45f, 0.0f);
-    glColor4f(0.18f, 0.60f, 0.18f, 0.88f);
-    float sway2 = sinf(globalTime * 0.7f + x * 0.07f) * 4.0f;
-    glRotatef(sway2, 0.0f, 0.0f, 1.0f);
-    glutSolidCone(height * 0.35f, height * 0.38f, 20, 20);
-    glPopMatrix();
-    
-    // Layer 3 - top
-    glPushMatrix();
-    glTranslatef(0.0f, height * 0.70f, 0.0f);
-    glColor4f(0.20f, 0.65f, 0.20f, 0.85f);
-    float sway3 = sinf(globalTime * 0.9f + x * 0.08f) * 6.0f;
-    glRotatef(sway3, 0.0f, 0.0f, 1.0f);
-    glutSolidCone(height * 0.20f, height * 0.30f, 18, 18);
-    glPopMatrix();
-    
-    glPopMatrix();
+    for (int ix = 0; ix < gridSize; ix++) {
+        glBegin(GL_QUAD_STRIP);
+        for (int iz = 0; iz <= gridSize; iz++) {
+            float x1 = -30.0f + ix * cellSize;
+            float z = -30.0f + iz * cellSize;
+            float y1 = getIslandHeight(x1, z);
+            
+            float x2 = -30.0f + (ix + 1) * cellSize;
+            float y2 = getIslandHeight(x2, z);
+            
+            // Distance-based coloring: green in center, sand at edges
+            float dist1 = sqrtf(x1*x1 + z*z);
+            float dist2 = sqrtf(x2*x2 + z*z);
+            
+            // Green land in center, sandy beach at edges (8-10 units from center)
+            if (dist1 < 8.0f) {
+                glColor3f(0.2f, 0.5f, 0.15f);  // Dark green
+            } else if (dist1 < 10.0f) {
+                // Transition to sand
+                float sand_blend = (dist1 - 8.0f) / 2.0f;
+                glColor3f(0.2f + sand_blend*0.55f, 0.5f - sand_blend*0.15f, 0.15f - sand_blend*0.1f);
+            } else {
+                glColor3f(0.75f, 0.65f, 0.3f);  // Sandy beach
+            }
+            
+            glVertex3f(x1, y1, z);
+            
+            if (dist2 < 8.0f) {
+                glColor3f(0.2f, 0.5f, 0.15f);
+            } else if (dist2 < 10.0f) {
+                float sand_blend = (dist2 - 8.0f) / 2.0f;
+                glColor3f(0.2f + sand_blend*0.55f, 0.5f - sand_blend*0.15f, 0.15f - sand_blend*0.1f);
+            } else {
+                glColor3f(0.75f, 0.65f, 0.3f);
+            }
+            
+            glVertex3f(x2, y2, z);
+        }
+        glEnd();
+    }
 }
 
-// Draw a volcano - HUGE VERTICAL CONE STRUCTURE
-void drawVolcano(float x, float z, float height, float time) {
+void drawTree(const Tree& t) {
+    float ty = getIslandHeight(t.x, t.z);
+    
     glPushMatrix();
-    glTranslatef(x, 0.0f, z);
+    glTranslatef(t.x, ty, t.z);
     
-    // Main cone - HUGE vertical volcano
-    glColor4f(0.7f, 0.4f, 0.15f, 1.0f);
-    glutSolidCone(height * 1.8f, height * 3.5f, 32, 32);
-    
-    // Darker layer at base for depth
-    glColor4f(0.5f, 0.25f, 0.08f, 0.95f);
-    GLUquadric* quadBase = gluNewQuadric();
-    gluDisk(quadBase, 0.0f, height * 1.8f, 24, 4);
-    
-    // Crater rim - circular opening at top
+    // Trunk: VERY TALL slim cylinder (palm tree trunk)
+    glColor3f(0.35f, 0.25f, 0.1f);
     glPushMatrix();
-    glTranslatef(0.0f, height * 3.5f, 0.0f);
-    glColor4f(0.1f, 0.05f, 0.0f, 1.0f);
-    GLUquadric* quadCrater = gluNewQuadric();
-    gluDisk(quadCrater, 0.0f, height * 0.7f, 24, 4);
+    glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);  // Rotate to vertical
+    gluCylinder(gluNewQuadric(), 0.12f, 0.10f, t.height, 6, 6);
     glPopMatrix();
     
-    // Lava eruption - shooting upward from crater
-    float eruptionFactor = sinf(time * 4.0f) * 0.6f + 0.4f;
-    for (int i = 0; i < 12; i++) {
-        glPushMatrix();
-        float angle = (i / 12.0f) * 6.283f;
-        float offsetX = cosf(angle) * height * 0.6f;
-        float offsetZ = sinf(angle) * height * 0.6f;
-        float offsetY = height * 3.5f + eruptionFactor * height * 1.2f;
-        glTranslatef(offsetX, offsetY, offsetZ);
+    // Foliage: Palm tree fronds using spheres for leaves
+    float trunkTop = t.height;
+    
+    // Large spray of leaves at top (palm fronds effect)
+    glColor3f(0.25f, 0.65f, 0.2f);  // Vibrant green
+    
+    // Central cluster of foliage (large)
+    glPushMatrix();
+    glTranslatef(0.0f, trunkTop + 0.3f, 0.0f);
+    glScalef(1.3f, 0.8f, 1.3f);
+    glutSolidSphere(0.9f, 10, 8);
+    glPopMatrix();
+    
+    // Side frond clusters (for palm effect)
+    glColor3f(0.2f, 0.60f, 0.18f);
+    for (int i = 0; i < 4; i++) {
+        float angle = (i * 90.0f) * 3.14159f / 180.0f;
+        float fx = cosf(angle) * 0.7f;
+        float fz = sinf(angle) * 0.7f;
         
-        glColor4f(1.0f, 0.3f + eruptionFactor * 0.4f, 0.0f, 0.6f * eruptionFactor);
-        glutSolidSphere(height * 0.35f * eruptionFactor, 12, 12);
+        glPushMatrix();
+        glTranslatef(fx, trunkTop + 0.2f, fz);
+        glScalef(0.7f, 0.6f, 0.7f);
+        glutSolidSphere(0.6f, 8, 6);
         glPopMatrix();
     }
     
-    // Smoke/ash cloud above volcano - larger
+    // Top tip (bright green peak)
+    glColor3f(0.35f, 0.75f, 0.25f);
     glPushMatrix();
-    glTranslatef(0.0f, height * 3.5f + height * 1.2f, 0.0f);
-    glColor4f(0.6f, 0.6f, 0.6f, 0.4f * eruptionFactor);
-    glutSolidSphere(height * 1.0f, 14, 14);
-    glPopMatrix();
-    
-    // Additional ash clouds for atmosphere
-    glPushMatrix();
-    glTranslatef(height * 0.8f, height * 3.5f + height * 0.9f, height * 0.5f);
-    glColor4f(0.5f, 0.5f, 0.5f, 0.25f * eruptionFactor);
-    glutSolidSphere(height * 0.7f, 10, 10);
+    glTranslatef(0.0f, trunkTop + 1.2f, 0.0f);
+    glutSolidSphere(0.35f, 8, 6);
     glPopMatrix();
     
     glPopMatrix();
 }
 
-// Draw ground (island)
-void drawGround() {
-    // Inner island land
-    glColor4f(0.35f, 0.55f, 0.25f, 0.95f);
-    glBegin(GL_QUADS);
-    glVertex3f(-12.0f, -0.05f, -8.0f);
-    glVertex3f(12.0f, -0.05f, -8.0f);
-    glVertex3f(12.0f, -0.05f, 8.0f);
-    glVertex3f(-12.0f, -0.05f, 8.0f);
-    glEnd();
+void drawVolcano(const Volcano& v) {
+    float vy = getIslandHeight(v.x, v.z);
     
-    // Water around island
-    glColor4f(0.1f, 0.3f, 0.6f, 0.8f);
-    glBegin(GL_QUADS);
-    glVertex3f(-16.0f, -0.08f, -12.0f);
-    glVertex3f(16.0f, -0.08f, -12.0f);
-    glVertex3f(16.0f, -0.08f, 12.0f);
-    glVertex3f(-16.0f, -0.08f, 12.0f);
-    glEnd();
+    glPushMatrix();
+    glTranslatef(v.x, vy, v.z);
     
-    // Ground grid on island
-    glColor4f(0.45f, 0.65f, 0.35f, 0.6f);
-    glBegin(GL_LINES);
-    for (float x = -12.0f; x <= 12.0f; x += 3.0f) {
-        glVertex3f(x, 0.0f, -8.0f);
-        glVertex3f(x, 0.0f, 8.0f);
+    // Main volcano cone - VERTICAL (pointing up along Y axis)
+    glColor3f(0.6f, 0.35f, 0.2f);  // Warm brown-red
+    glPushMatrix();
+    glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);  // CRITICAL: Make cone vertical!
+    glutSolidCone(v.radius, v.height, 20, 16);
+    glPopMatrix();
+    
+    // Darker crater shadow at top
+    glColor3f(0.4f, 0.25f, 0.1f);
+    glPushMatrix();
+    glTranslatef(0.0f, v.height - 0.4f, 0.0f);
+    glutSolidSphere(v.radius * 0.5f, 16, 8);
+    glPopMatrix();
+    
+    // Crater glow - bright lava (at apex)
+    float craterGlow = 0.5f + sinf(globalTime * 4.0f) * 0.4f;
+    glColor4f(1.0f, 0.6f, 0.1f, craterGlow);
+    glPushMatrix();
+    glTranslatef(0.0f, v.height, 0.0f);
+    glEnable(GL_BLEND);
+    glutSolidSphere(v.radius * 0.8f, 12, 10);
+    glDisable(GL_BLEND);
+    glPopMatrix();
+    
+    glPopMatrix();
+    
+    // Spawn MORE smoke particles for dramatic effect
+    if (rand() % 6 == 0) {
+        for (int i = 0; i < 4; i++) {
+            SmokeParticle p;
+            p.x = v.x + (rand() % 30 - 15) / 20.0f;
+            p.y = vy + v.height;
+            p.z = v.z + (rand() % 30 - 15) / 20.0f;
+            p.vx = (rand() % 20 - 10) / 250.0f;
+            p.vy = 0.10f + (rand() % 15) / 300.0f;  // Faster upward
+            p.vz = (rand() % 20 - 10) / 250.0f;
+            p.life = 1.2f;
+            p.age = 0.0f;
+            smoke.push_back(p);
+        }
     }
-    for (float z = -8.0f; z <= 8.0f; z += 3.0f) {
-        glVertex3f(-12.0f, 0.0f, z);
-        glVertex3f(12.0f, 0.0f, z);
-    }
-    glEnd();
 }
 
-// Draw sky
+void drawSmoke() {
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    
+    auto it = smoke.begin();
+    while (it != smoke.end()) {
+        it->age += 0.016f;
+        it->x += it->vx;
+        it->y += it->vy;
+        it->z += it->vz;
+        
+        if (it->age >= it->life) {
+            it = smoke.erase(it);
+        } else {
+            float alpha = 0.5f * (1.0f - it->age / it->life);  // More visible
+            glColor4f(0.75f, 0.75f, 0.75f, alpha);  // Lighter smoke
+            
+            glPushMatrix();
+            glTranslatef(it->x, it->y, it->z);
+            float size = 0.25f + (it->age / it->life) * 0.8f;  // Larger clouds
+            glScalef(size, size, size);
+            glutSolidSphere(1.0f, 5, 5);
+            glPopMatrix();
+            
+            ++it;
+        }
+    }
+    glDisable(GL_BLEND);
+}
+
+void drawAmphibian(const Amphibian& a) {
+    float ty = getIslandHeight(a.x, a.z);
+    float hop = fabsf(sinf(globalTime * 3.0f)) * 0.08f;
+    
+    glPushMatrix();
+    glTranslatef(a.x, ty + 0.15f + hop, a.z);
+    
+    // Body
+    glColor3f(0.6f, 0.7f, 0.3f);
+    glPushMatrix();
+    glScalef(0.25f, 0.15f, 0.35f);
+    glutSolidSphere(1.0f, 6, 5);
+    glPopMatrix();
+    
+    // Head
+    glColor3f(0.65f, 0.72f, 0.35f);
+    glPushMatrix();
+    glTranslatef(0.0f, 0.08f, 0.15f);
+    glutSolidSphere(0.08f, 5, 4);
+    glPopMatrix();
+    
+    // Eyes
+    glColor3f(1.0f, 1.0f, 1.0f);
+    glPushMatrix();
+    glTranslatef(-0.05f, 0.1f, 0.19f);
+    glutSolidSphere(0.02f, 4, 3);
+    glPopMatrix();
+    glPushMatrix();
+    glTranslatef(0.05f, 0.1f, 0.19f);
+    glutSolidSphere(0.02f, 4, 3);
+    glPopMatrix();
+    
+    glPopMatrix();
+}
+
+void renderText(const char* text, float x, float y) {
+    glDisable(GL_LIGHTING);
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(0, 800, 0, 600, -1, 1);
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+    
+    glColor3f(1.0f, 1.0f, 1.0f);  // White text
+    glRasterPos2f(x, y);
+    
+    // Render each character
+    for (const char* c = text; *c != '\0'; ++c) {
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
+    }
+    
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glEnable(GL_LIGHTING);
+}
+
 void drawSky() {
     glDisable(GL_DEPTH_TEST);
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadIdentity();
+    glOrtho(0, 1, 0, 1, -1, 1);
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
     
-    // Sky gradient
     glBegin(GL_QUADS);
-    // Light blue at horizon
-    glColor4f(0.5f, 0.7f, 1.0f, 1.0f);
-    glVertex2f(-1.0f, -1.0f);
-    glVertex2f(1.0f, -1.0f);
-    // Darker blue at top
-    glColor4f(0.2f, 0.4f, 0.8f, 1.0f);
-    glVertex2f(1.0f, 1.0f);
-    glVertex2f(-1.0f, 1.0f);
+    // Dark night sky - very dark blue to black
+    glColor3f(0.02f, 0.02f, 0.08f);  // Almost black
+    glVertex2f(0, 1);
+    glVertex2f(1, 1);
+    // Slightly lighter at horizon (dark blue)
+    glColor3f(0.05f, 0.05f, 0.15f);
+    glVertex2f(1, 0);
+    glVertex2f(0, 0);
     glEnd();
     
+    glMatrixMode(GL_PROJECTION);
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
     glEnable(GL_DEPTH_TEST);
 }
 
-void display() {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glLoadIdentity();
-    
-    // Camera overview of volcanic island with giant pine forest
-    gluLookAt(
-        5.0f, 8.0f, 16.0f,
-        0.0f, 1.0f, 0.0f,
-        0.0f, 1.0f, 0.0f
-    );
-    
-    // Draw environment
-    drawGround();
-    
-    // Draw volcanoes with eruption
-    for (const auto& vol : volcanoes) {
-        drawVolcano(vol.x, vol.z, vol.height, globalTime * vol.eruptionIntensity);
-    }
-    
-    // Draw gymnosperms (giant pine trees)
-    for (const auto& tree : gymnosperms) {
-        drawGymnosperm(tree.x, tree.z, tree.height);
-    }
-    
-    // Draw text overlay
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadIdentity();
-    glOrtho(0, 800, 600, 0, -1, 1);
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glLoadIdentity();
-    
+void drawStars() {
     glDisable(GL_LIGHTING);
     glDisable(GL_DEPTH_TEST);
-    glColor4f(0.8f, 0.9f, 1.0f, 0.95f);
-    glRasterPos2f(50, 50);
-    const char* title = "Chapter 13: Volcanic Island with Giant Gynosperms";
-    for (const char* c = title; *c; c++) {
-        glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, *c);
-    }
     
-    glRasterPos2f(50, 80);
-    char timeStr[50];
-    sprintf(timeStr, "Time: %.1f seconds | Triple volcanoes erupting", globalTime);
-    for (const char* c = timeStr; *c; c++) {
-        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
+    // Draw each star with twinkling effect
+    for (const auto& s : stars) {
+        // Twinkle effect based on star position and global time
+        float twinkle = 0.5f + 0.5f * sinf(globalTime * 2.0f + s.x * 0.5f + s.z * 0.3f);
+        float brightness = s.brightness * twinkle;
+        
+        glColor3f(brightness, brightness, brightness * 0.95f);
+        
+        glPushMatrix();
+        glTranslatef(s.x, s.y, s.z);
+        glPointSize(2.0f);
+        glBegin(GL_POINTS);
+        glVertex3f(0, 0, 0);
+        glEnd();
+        glPopMatrix();
     }
     
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_LIGHTING);
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
+}
+
+void drawClouds() {
+    // Disabled for night scene
+    // (Optional: could draw dark silhouettes of clouds if desired)
+}
+
+void drawOcean() {
+    // DARKER BLUE ocean
+    glColor4f(0.0f, 0.15f, 0.35f, 0.85f);
+    
+    float step = 50.0f / 40.0f;  // 40×40 grid
+    
+    glEnable(GL_BLEND);
+    for (float x = -25.0f; x < 25.0f; x += step) {
+        glBegin(GL_QUAD_STRIP);
+        for (float z = -20.0f; z <= 20.0f; z += step) {
+            float dist_sq = x*x + z*z;
+            if (dist_sq > 400.0f) {  // Only draw ocean outside island
+                float wave1 = sinf(x * 0.4f + globalTime * 0.8f) * 0.3f;
+                float wave2 = cosf(z * 0.3f + globalTime * 0.6f) * 0.25f;
+                float y = -0.5f + wave1 + wave2;
+                
+                float wave1_2 = sinf((x + step) * 0.4f + globalTime * 0.8f) * 0.3f;
+                float wave2_2 = cosf(z * 0.3f + globalTime * 0.6f) * 0.25f;
+                float y2 = -0.5f + wave1_2 + wave2_2;
+                
+                glVertex3f(x, y, z);
+                glVertex3f(x + step, y2, z);
+            }
+        }
+        glEnd();
+    }
+    glDisable(GL_BLEND);
+}
+
+// ============================================================================
+// UPDATE FUNCTIONS
+// ============================================================================
+
+void updateAmphibians() {
+    for (auto& a : amphibians) {
+        float dx = cosf(a.dir * 3.14159f / 180.0f) * a.speed;
+        float dz = sinf(a.dir * 3.14159f / 180.0f) * a.speed;
+        a.x += dx;
+        a.z += dz;
+        
+        // Gentle random turning
+        a.dir += sinf(globalTime * 0.3f + a.x * 0.02f) * 0.2f;
+        
+        // Boundary wrapping
+        float dist = sqrtf(a.x * a.x + a.z * a.z);
+        if (dist > 20.0f) {
+            a.dir = atan2f(-a.z, -a.x) * 180.0f / 3.14159f;
+        }
+    }
+}
+
+// ============================================================================
+// DISPLAY & CALLBACKS
+// ============================================================================
+
+void display() {
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
+    // Draw sky FIRST
+    drawSky();
+    
+    // Draw stars
+    drawStars();
+    
+    // ZOOMED-IN camera view - much closer to the island
     glMatrixMode(GL_MODELVIEW);
-    glPopMatrix();
+    glLoadIdentity();
+    gluLookAt(20, 15, 30,    0, 2, 0,    0, 1, 0);
+    
+    // Draw clouds
+    drawClouds();
+    
+    // Draw environment
+    drawTerrain();
+    drawOcean();
+    
+    // Draw volcanoes - VERTICAL CONE
+    for (const auto& v : volcanoes) {
+        drawVolcano(v);
+    }
+    
+    // Draw trees
+    for (const auto& t : trees) {
+        drawTree(t);
+    }
+    
+    // Draw amphibians
+    for (const auto& a : amphibians) {
+        drawAmphibian(a);
+    }
+    
+    // Draw smoke particles
+    drawSmoke();
+    
+    // Draw text label
+    renderText("Carboniferous Period", 50.0f, 540.0f);
     
     glutSwapBuffers();
 }
@@ -274,15 +532,23 @@ void reshape(int w, int h) {
     glViewport(0, 0, w, h);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(60.0f, (float)w / (float)h, 0.1f, 100.0f);
-    glMatrixMode(GL_MODELVIEW);
+    gluPerspective(45.0f, (float)w / (float)h, 0.1f, 100.0f);
 }
 
-void timer(int value) {
+// ============================================================================
+// MAIN LOOP
+// ============================================================================
+
+void timer(int v) {
     globalTime += 0.016f;
+    updateAmphibians();
     glutPostRedisplay();
     glutTimerFunc(16, timer, 0);
 }
+
+// ============================================================================
+// INITIALIZATION & MAIN
+// ============================================================================
 
 void setupLighting() {
     glEnable(GL_LIGHTING);
@@ -290,38 +556,48 @@ void setupLighting() {
     glEnable(GL_COLOR_MATERIAL);
     glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
     
-    GLfloat light_position[] = { 5.0f, 10.0f, 5.0f, 0.0f };
-    GLfloat light_ambient[] = { 0.4f, 0.4f, 0.4f, 1.0f };
-    GLfloat light_diffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-    GLfloat light_specular[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    GLfloat light_pos[] = {10.0f, 20.0f, 10.0f, 0.0f};
+    GLfloat light_amb[] = {0.4f, 0.4f, 0.4f, 1.0f};
+    GLfloat light_dif[] = {0.8f, 0.8f, 0.75f, 1.0f};
     
-    glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-    glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
-    glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
-    
-    GLfloat material_specular[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-    GLfloat material_shininess[] = { 32.0f };
-    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, material_specular);
-    glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, material_shininess);
+    glLightfv(GL_LIGHT0, GL_POSITION, light_pos);
+    glLightfv(GL_LIGHT0, GL_AMBIENT, light_amb);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, light_dif);
+}
+
+void setupFog() {
+    // DISABLED: Fog was causing blur, keep everything CLEAR
+    /*
+    glEnable(GL_FOG);
+    glFogi(GL_FOG_MODE, GL_EXP2);
+    glFogf(GL_FOG_DENSITY, 0.02f);
+    GLfloat fog_color[] = {0.5f, 0.7f, 1.0f, 1.0f};
+    glFogfv(GL_FOG_COLOR, fog_color);
+    */
 }
 
 void init() {
-    glClearColor(0.5f, 0.7f, 1.0f, 1.0f);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_NORMALIZE);
+    
+    glClearColor(0.02f, 0.02f, 0.08f, 1.0f);  // Dark night background
     
     setupLighting();
-    initializeVolcanoes();
-    initializeGymnosperms();
+    setupFog();
+    
+    initAmphibians();
+    initTrees();
+    initVolcanoes();
+    initStars();
 }
 
 int main(int argc, char** argv) {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
-    glutInitWindowSize(800, 600);
-    glutCreateWindow("Chapter 13: Land with Volcanoes & Gymnosperms");
+    glutInitWindowSize(1024, 768);
+    glutCreateWindow("Amphibian Age - Volcanic Island Ecosystem");
     
     init();
     

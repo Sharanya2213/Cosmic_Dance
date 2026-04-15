@@ -1,371 +1,356 @@
 #include <GL/glut.h>
 #include <cmath>
+#include <vector>
 #include <cstdlib>
 #include <cstdio>
-#include <vector>
 
 float globalTime = 0.0f;
+bool asteroidActive = false;
+float asteroidX = 80.0f;
+float asteroidY = 60.0f;
+float asteroidZ = 0.0f;
+float blastRadius = 0.0f;
+float blastIntensity = 0.0f;
 
-// Dinosaur structure
 struct Dinosaur {
     float x, z;
     float scale;
     float speed;
-    int type; // 0=TRex, 1=Triceratops, 2=Stegosaurus
-};
-
-// Vegetation
-struct Plant {
-    float x, z;
-    float height;
+    int type;  // 0=T-Rex, 1=Triceratops
 };
 
 std::vector<Dinosaur> dinosaurs;
-std::vector<Plant> plants;
 
-void initializeDinosaurs() {
+void initDinosaurs() {
     dinosaurs.clear();
-    dinosaurs.push_back({-8.0f, 0.0f, 1.2f, 0.015f, 0}); // T-Rex
-    dinosaurs.push_back({-5.0f, 3.0f, 0.9f, 0.01f, 1});  // Triceratops
-    dinosaurs.push_back({2.0f, -2.0f, 1.0f, 0.008f, 2}); // Stegosaurus
+    dinosaurs.push_back({-5.0f, 0.0f, 1.2f, 0.015f, 0});  // T-Rex
+    dinosaurs.push_back({0.0f, 2.0f, 0.9f, 0.012f, 0});    // T-Rex
+    dinosaurs.push_back({8.0f, -1.0f, 1.0f, 0.01f, 1});    // Triceratops
+    printf("Initialized %d dinosaurs\n", (int)dinosaurs.size());
 }
 
-void initializePlants() {
-    plants.clear();
-    for (int i = 0; i < 15; i++) {
-        float x = -10.0f + (rand() % 200) / 10.0f;
-        float z = -5.0f + (rand() % 100) / 10.0f;
-        float h = 1.0f + (rand() % 30) / 100.0f;
-        plants.push_back({x, z, h});
+void drawSky() {
+    glDisable(GL_LIGHTING);
+    glDisable(GL_DEPTH_TEST);
+    
+    // Gray sky gradient
+    glBegin(GL_QUADS);
+    // Dark gray top
+    glColor3f(0.4f, 0.4f, 0.4f);
+    glVertex3f(-100.0f, 40.0f, -100.0f);
+    glVertex3f(100.0f, 40.0f, -100.0f);
+    
+    // Light gray bottom
+    glColor3f(0.6f, 0.6f, 0.6f);
+    glVertex3f(100.0f, 5.0f, -100.0f);
+    glVertex3f(-100.0f, 5.0f, -100.0f);
+    glEnd();
+    
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_LIGHTING);
+}
+
+void drawGround() {
+    // Main green grass area
+    glColor3f(0.25f, 0.55f, 0.15f);
+    glBegin(GL_QUADS);
+    glVertex3f(-100.0f, 0.0f, -100.0f);
+    glVertex3f(100.0f, 0.0f, -100.0f);
+    glVertex3f(100.0f, 0.0f, 100.0f);
+    glVertex3f(-100.0f, 0.0f, 100.0f);
+    glEnd();
+    
+    // Grass texture detail
+    glColor3f(0.2f, 0.5f, 0.1f);
+    glBegin(GL_LINES);
+    glLineWidth(0.5f);
+    for (float x = -100.0f; x < 100.0f; x += 5.0f) {
+        for (float z = -100.0f; z < 100.0f; z += 5.0f) {
+            glVertex3f(x, 0.01f, z);
+            glVertex3f(x + 2.5f, 0.01f, z + 2.5f);
+        }
     }
+    glLineWidth(1.0f);
+    glEnd();
 }
 
-// Draw fern-like plant
-void drawFern(float x, float z, float height) {
-    glPushMatrix();
-    glTranslatef(x, 0.0f, z);
-    
-    // Trunk
-    GLUquadric* quad = gluNewQuadric();
-    glColor4f(0.3f, 0.5f, 0.1f, 0.9f);
-    gluCylinder(quad, 0.06f, 0.04f, height * 0.4f, 6, 6);
-    
-    // Fronds
-    glTranslatef(0.0f, height * 0.4f, 0.0f);
-    glColor4f(0.2f, 0.7f, 0.15f, 0.8f);
-    
-    float sway = sinf(globalTime * 0.8f + x * 0.1f) * 2.0f;
-    glRotatef(sway, 0.0f, 0.0f, 1.0f);
-    
-    for (int i = 0; i < 3; i++) {
-        glPushMatrix();
-        glRotatef((i / 3.0f) * 120.0f, 0.0f, 1.0f, 0.0f);
-        glutSolidCone(height * 0.2f, height * 0.6f, 12, 8);
-        glPopMatrix();
-    }
-    
-    glPopMatrix();
-}
-
-// Draw T-Rex
 void drawTRex(float x, float z, float scale) {
     glPushMatrix();
     glTranslatef(x, 0.0f, z);
     glScalef(scale, scale, scale);
     
+    // Body (large)
+    glPushMatrix();
+    glColor3f(0.6f, 0.4f, 0.2f);  // Brown
+    glScalef(2.5f, 1.2f, 1.0f);
+    glutSolidSphere(0.8f, 16, 16);
+    glPopMatrix();
+    
+    // Neck
+    glPushMatrix();
+    glTranslatef(1.2f, 0.8f, 0.0f);
+    glColor3f(0.65f, 0.45f, 0.25f);
+    glRotatef(20.0f, 0.0f, 0.0f, 1.0f);
+    glScalef(0.7f, 1.5f, 0.7f);
+    glutSolidSphere(0.4f, 12, 12);
+    glPopMatrix();
+    
     // Head
     glPushMatrix();
-    glTranslatef(2.0f, 1.5f, 0.0f);
-    glColor4f(0.7f, 0.5f, 0.3f, 0.9f);
-    glutSolidSphere(0.5f, 16, 16);
+    glTranslatef(1.8f, 1.6f, 0.0f);
+    glColor3f(0.7f, 0.5f, 0.3f);
+    glScalef(1.1f, 0.9f, 0.85f);
+    glutSolidSphere(0.5f, 14, 14);
     
-    // Jaw
-    glTranslatef(0.3f, -0.2f, 0.0f);
-    glColor4f(0.6f, 0.4f, 0.2f, 0.9f);
-    glScalef(1.2f, 0.6f, 0.8f);
-    glutSolidSphere(0.3f, 12, 12);
+    // Jaw/mouth detail
+    glColor3f(0.55f, 0.35f, 0.15f);
+    glPushMatrix();
+    glTranslatef(0.35f, -0.3f, 0.0f);
+    glScalef(0.7f, 0.4f, 0.6f);
+    glutSolidSphere(0.4f, 8, 8);
     glPopMatrix();
     
-    // Body
-    glPushMatrix();
-    glTranslatef(0.5f, 0.8f, 0.0f);
-    glColor4f(0.6f, 0.4f, 0.2f, 0.9f);
-    glScalef(3.0f, 1.2f, 1.0f);
-    glutSolidSphere(0.6f, 20, 20);
     glPopMatrix();
     
-    // Tail (swinging)
+    // Eye
     glPushMatrix();
-    glTranslatef(-1.5f, 0.6f, 0.0f);
-    float tailWave = sinf(globalTime * 3.0f) * 25.0f;
-    glRotatef(tailWave, 0.0f, 1.0f, 0.0f);
-    glColor4f(0.5f, 0.3f, 0.15f, 0.85f);
-    GLUquadric* quad = gluNewQuadric();
-    gluCylinder(quad, 0.3f, 0.15f, 2.5f, 12, 12);
+    glTranslatef(2.0f, 1.8f, 0.35f);
+    glColor3f(0.8f, 0.7f, 0.5f);
+    glutSolidSphere(0.15f, 8, 8);
     glPopMatrix();
     
-    // Front legs (tiny)
+    // Front left leg
     glPushMatrix();
-    glTranslatef(1.2f, 0.3f, 0.5f);
-    glColor4f(0.5f, 0.3f, 0.15f, 0.9f);
-    glScalef(0.3f, 0.8f, 0.3f);
-    glutSolidSphere(0.2f, 8, 8);
+    glTranslatef(0.5f, -0.7f, 0.6f);
+    glColor3f(0.4f, 0.25f, 0.05f);
+    glScalef(0.65f, 2.2f, 0.65f);
+    glutSolidSphere(0.42f, 12, 12);
+    glPopMatrix();
+    
+    // Front right leg
+    glPushMatrix();
+    glTranslatef(0.5f, -0.7f, -0.6f);
+    glColor3f(0.4f, 0.25f, 0.05f);
+    glScalef(0.65f, 2.2f, 0.65f);
+    glutSolidSphere(0.42f, 12, 12);
+    glPopMatrix();
+    
+    // Back left leg
+    glPushMatrix();
+    glTranslatef(-1.0f, -0.7f, 0.7f);
+    glColor3f(0.4f, 0.25f, 0.05f);
+    glScalef(0.75f, 2.4f, 0.75f);
+    glutSolidSphere(0.45f, 12, 12);
+    glPopMatrix();
+    
+    // Back right leg
+    glPushMatrix();
+    glTranslatef(-1.0f, -0.7f, -0.7f);
+    glColor3f(0.4f, 0.25f, 0.05f);
+    glScalef(0.75f, 2.4f, 0.75f);
+    glutSolidSphere(0.45f, 12, 12);
+    glPopMatrix();
+    
+    // Tail
+    glPushMatrix();
+    glTranslatef(-2.0f, 0.5f, 0.0f);
+    float tailSway = sinf(globalTime * 3.0f) * 15.0f;
+    glRotatef(tailSway, 0.0f, 0.0f, 1.0f);
+    glColor3f(0.5f, 0.3f, 0.1f);
+    glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+    glutSolidCone(0.35f, 2.0f, 10, 10);
+    glPopMatrix();
+    
+    // Small arms
+    glColor3f(0.5f, 0.3f, 0.1f);
+    glPushMatrix();
+    glTranslatef(0.8f, 0.2f, 0.3f);
+    glScalef(0.3f, 0.6f, 0.3f);
+    glutSolidSphere(0.25f, 8, 8);
     glPopMatrix();
     
     glPushMatrix();
-    glTranslatef(1.2f, 0.3f, -0.5f);
-    glColor4f(0.5f, 0.3f, 0.15f, 0.9f);
-    glScalef(0.3f, 0.8f, 0.3f);
-    glutSolidSphere(0.2f, 8, 8);
-    glPopMatrix();
-    
-    // Hind legs
-    glPushMatrix();
-    glTranslatef(0.0f, 0.0f, 0.7f);
-    glColor4f(0.4f, 0.25f, 0.1f, 0.9f);
-    glScalef(0.5f, 1.5f, 0.4f);
-    glutSolidSphere(0.25f, 10, 10);
-    glPopMatrix();
-    
-    glPushMatrix();
-    glTranslatef(0.0f, 0.0f, -0.7f);
-    glColor4f(0.4f, 0.25f, 0.1f, 0.9f);
-    glScalef(0.5f, 1.5f, 0.4f);
-    glutSolidSphere(0.25f, 10, 10);
+    glTranslatef(0.8f, 0.2f, -0.3f);
+    glScalef(0.3f, 0.6f, 0.3f);
+    glutSolidSphere(0.25f, 8, 8);
     glPopMatrix();
     
     glPopMatrix();
 }
 
-// Draw Triceratops
 void drawTriceratops(float x, float z, float scale) {
     glPushMatrix();
     glTranslatef(x, 0.0f, z);
     glScalef(scale, scale, scale);
     
-    // Head with horns
-    glPushMatrix();
-    glTranslatef(1.5f, 1.2f, 0.0f);
-    glColor4f(0.6f, 0.5f, 0.3f, 0.9f);
-    glutSolidSphere(0.6f, 16, 16);
-    
-    // Horn 1 (top)
-    glPushMatrix();
-    glTranslatef(0.3f, 0.5f, 0.0f);
-    glColor4f(0.8f, 0.7f, 0.5f, 0.9f);
-    glRotatef(30.0f, 1.0f, 0.0f, 0.0f);
-    glutSolidCone(0.08f, 0.6f, 8, 8);
-    glPopMatrix();
-    
-    // Horn 2 (left)
-    glPushMatrix();
-    glTranslatef(0.1f, 0.2f, 0.4f);
-    glColor4f(0.8f, 0.7f, 0.5f, 0.9f);
-    glRotatef(40.0f, 1.0f, 0.0f, 0.0f);
-    glutSolidCone(0.06f, 0.5f, 8, 8);
-    glPopMatrix();
-    
-    // Horn 3 (right)
-    glPushMatrix();
-    glTranslatef(0.1f, 0.2f, -0.4f);
-    glColor4f(0.8f, 0.7f, 0.5f, 0.9f);
-    glRotatef(40.0f, 1.0f, 0.0f, 0.0f);
-    glutSolidCone(0.06f, 0.5f, 8, 8);
-    glPopMatrix();
-    
-    // Frill (neck)
-    glTranslatef(-0.2f, 0.3f, 0.0f);
-    glColor4f(0.5f, 0.4f, 0.2f, 0.85f);
-    glScalef(1.2f, 0.8f, 1.8f);
-    glutSolidSphere(0.4f, 14, 14);
-    glPopMatrix();
-    
     // Body
     glPushMatrix();
-    glTranslatef(0.2f, 0.7f, 0.0f);
-    glColor4f(0.5f, 0.45f, 0.25f, 0.9f);
-    glScalef(2.5f, 1.3f, 1.2f);
-    glutSolidSphere(0.7f, 18, 18);
+    glColor3f(0.65f, 0.45f, 0.25f);  // Brown
+    glScalef(2.2f, 1.1f, 0.95f);
+    glutSolidSphere(0.75f, 16, 16);
+    glPopMatrix();
+    
+    // Neck/Head
+    glPushMatrix();
+    glTranslatef(1.0f, 0.6f, 0.0f);
+    glColor3f(0.7f, 0.5f, 0.3f);
+    glScalef(1.0f, 0.8f, 1.0f);
+    glutSolidSphere(0.6f, 14, 14);
+    glPopMatrix();
+    
+    // Front horn
+    glPushMatrix();
+    glTranslatef(1.5f, 1.3f, 0.0f);
+    glColor3f(0.8f, 0.7f, 0.5f);
+    glRotatef(25.0f, 0.0f, 0.0f, 1.0f);
+    glutSolidCone(0.18f, 0.8f, 8, 8);
+    glPopMatrix();
+    
+    // Left back horn
+    glPushMatrix();
+    glTranslatef(0.8f, 1.1f, 0.35f);
+    glColor3f(0.75f, 0.65f, 0.45f);
+    glRotatef(30.0f, 0.0f, 0.0f, 1.0f);
+    glutSolidCone(0.12f, 0.6f, 8, 8);
+    glPopMatrix();
+    
+    // Right back horn
+    glPushMatrix();
+    glTranslatef(0.8f, 1.1f, -0.35f);
+    glColor3f(0.75f, 0.65f, 0.45f);
+    glRotatef(-30.0f, 0.0f, 0.0f, 1.0f);
+    glutSolidCone(0.12f, 0.6f, 8, 8);
+    glPopMatrix();
+    
+    // Front left leg
+    glPushMatrix();
+    glTranslatef(0.6f, -0.6f, 0.6f);
+    glColor3f(0.45f, 0.3f, 0.1f);
+    glScalef(0.65f, 2.1f, 0.65f);
+    glutSolidSphere(0.4f, 12, 12);
+    glPopMatrix();
+    
+    // Front right leg
+    glPushMatrix();
+    glTranslatef(0.6f, -0.6f, -0.6f);
+    glColor3f(0.45f, 0.3f, 0.1f);
+    glScalef(0.65f, 2.1f, 0.65f);
+    glutSolidSphere(0.4f, 12, 12);
+    glPopMatrix();
+    
+    // Back left leg
+    glPushMatrix();
+    glTranslatef(-0.8f, -0.6f, 0.7f);
+    glColor3f(0.45f, 0.3f, 0.1f);
+    glScalef(0.7f, 2.2f, 0.7f);
+    glutSolidSphere(0.42f, 12, 12);
+    glPopMatrix();
+    
+    // Back right leg
+    glPushMatrix();
+    glTranslatef(-0.8f, -0.6f, -0.7f);
+    glColor3f(0.45f, 0.3f, 0.1f);
+    glScalef(0.7f, 2.2f, 0.7f);
+    glutSolidSphere(0.42f, 12, 12);
     glPopMatrix();
     
     // Tail
     glPushMatrix();
-    glTranslatef(-1.2f, 0.5f, 0.0f);
-    glColor4f(0.4f, 0.35f, 0.15f, 0.85f);
-    GLUquadric* quad2 = gluNewQuadric();
-    gluCylinder(quad2, 0.25f, 0.1f, 1.8f, 10, 10);
+    glTranslatef(-1.8f, 0.3f, 0.0f);
+    float tailSway = sinf(globalTime * 2.5f) * 12.0f;
+    glRotatef(tailSway, 0.0f, 0.0f, 1.0f);
+    glColor3f(0.55f, 0.35f, 0.15f);
+    glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+    glutSolidCone(0.3f, 1.8f, 10, 10);
     glPopMatrix();
-    
-    // Legs
-    for (float zOff : {-0.6f, 0.6f}) {
-        glPushMatrix();
-        glTranslatef(0.5f, 0.0f, zOff);
-        glColor4f(0.4f, 0.35f, 0.15f, 0.9f);
-        glScalef(0.4f, 1.8f, 0.4f);
-        glutSolidSphere(0.28f, 10, 10);
-        glPopMatrix();
-        
-        glPushMatrix();
-        glTranslatef(-0.5f, 0.0f, zOff);
-        glColor4f(0.4f, 0.35f, 0.15f, 0.9f);
-        glScalef(0.4f, 1.8f, 0.4f);
-        glutSolidSphere(0.28f, 10, 10);
-        glPopMatrix();
-    }
     
     glPopMatrix();
 }
 
-// Draw Stegosaurus
-void drawStegosaurus(float x, float z, float scale) {
-    glPushMatrix();
-    glTranslatef(x, 0.0f, z);
-    glScalef(scale, scale, scale);
+void drawAsteroid() {
+    if (!asteroidActive) return;
     
-    // Head
+    glDisable(GL_LIGHTING);
+    
+    // Bright meteor core
+    glColor3f(1.0f, 0.95f, 0.8f);
     glPushMatrix();
-    glTranslatef(1.5f, 1.0f, 0.0f);
-    glColor4f(0.5f, 0.6f, 0.3f, 0.9f);
-    glutSolidSphere(0.4f, 14, 14);
+    glTranslatef(asteroidX, asteroidY, asteroidZ);
+    glutSolidSphere(0.6f, 12, 12);
     glPopMatrix();
     
-    // Body with plates on back
+    // Glow halo
+    glColor4f(1.0f, 0.7f, 0.2f, 0.7f);
     glPushMatrix();
-    glTranslatef(0.0f, 0.8f, 0.0f);
-    glColor4f(0.4f, 0.55f, 0.25f, 0.9f);
-    glScalef(3.0f, 1.0f, 1.1f);
-    glutSolidSphere(0.65f, 20, 20);
+    glTranslatef(asteroidX, asteroidY, asteroidZ);
+    glutSolidSphere(1.5f, 10, 10);
     glPopMatrix();
     
-    // Dorsal plates along back
-    glColor4f(0.7f, 0.4f, 0.2f, 0.8f);
-    for (int i = 0; i < 8; i++) {
-        glPushMatrix();
-        float posX = -0.8f + (i / 7.0f) * 2.0f;
-        glTranslatef(posX, 1.5f, 0.0f);
+    // Long trailing tail
+    glLineWidth(2.5f);
+    glBegin(GL_LINE_STRIP);
+    for (int i = 0; i <= 15; i++) {
+        float t = (float)i / 15.0f;
+        float tx = asteroidX + (t * 8.0f);
+        float ty = asteroidY + (t * 6.0f);
         
-        float plateSway = sinf(globalTime * 1.5f + i) * 0.1f;
-        glRotatef(plateSway * 20.0f, 0.0f, 0.0f, 1.0f);
-        
-        glScalef(0.3f, 0.9f, 0.2f);
-        glutSolidSphere(0.35f, 10, 10);
-        glPopMatrix();
+        float fade = 1.0f - (t * t);
+        glColor4f(1.0f, 0.6f - (t * 0.3f), 0.1f, fade * 0.8f);
+        glVertex3f(tx, ty, asteroidZ);
     }
+    glEnd();
+    glLineWidth(1.0f);
     
-    // Tail with spikes
-    glPushMatrix();
-    glTranslatef(-1.8f, 0.6f, 0.0f);
-    float tailWave = sinf(globalTime * 2.5f) * 20.0f;
-    glRotatef(tailWave, 0.0f, 1.0f, 0.0f);
-    glColor4f(0.35f, 0.5f, 0.2f, 0.85f);
-    GLUquadric* quad = gluNewQuadric();
-    gluCylinder(quad, 0.3f, 0.1f, 2.0f, 12, 12);
-    
-    // Tail spikes
-    glColor4f(0.6f, 0.3f, 0.1f, 0.85f);
-    for (int i = 0; i < 4; i++) {
-        glPushMatrix();
-        float spikePos = 0.5f + (i / 3.0f) * 1.5f;
-        glTranslatef(0.0f, 0.0f, spikePos);
-        float spikeAngle = (i % 2 == 0) ? 30.0f : -30.0f;
-        glRotatef(spikeAngle, 1.0f, 0.0f, 0.0f);
-        glutSolidCone(0.1f, 0.5f, 8, 8);
-        glPopMatrix();
-    }
-    glPopMatrix();
-    
-    // Legs
-    for (float zOff : {-0.7f, 0.7f}) {
-        for (float xPos : {0.5f, -0.5f}) {
-            glPushMatrix();
-            glTranslatef(xPos, 0.0f, zOff);
-            glColor4f(0.35f, 0.5f, 0.2f, 0.9f);
-            glScalef(0.45f, 1.6f, 0.45f);
-            glutSolidSphere(0.3f, 10, 10);
-            glPopMatrix();
-        }
-    }
-    
-    glPopMatrix();
+    glEnable(GL_LIGHTING);
 }
 
-void drawGround() {
-    glColor4f(0.2f, 0.6f, 0.15f, 0.95f);
-    glBegin(GL_QUADS);
-    glVertex3f(-15.0f, -0.05f, -8.0f);
-    glVertex3f(15.0f, -0.05f, -8.0f);
-    glVertex3f(15.0f, -0.05f, 8.0f);
-    glVertex3f(-15.0f, -0.05f, 8.0f);
-    glEnd();
+void drawBlast() {
+    if (blastRadius <= 0.01f) return;
     
-    // Ground grid
-    glColor4f(0.3f, 0.7f, 0.2f, 0.6f);
-    glBegin(GL_LINES);
-    for (float x = -15.0f; x <= 15.0f; x += 3.0f) {
-        glVertex3f(x, 0.0f, -8.0f);
-        glVertex3f(x, 0.0f, 8.0f);
-    }
-    for (float z = -8.0f; z <= 8.0f; z += 3.0f) {
-        glVertex3f(-15.0f, 0.0f, z);
-        glVertex3f(15.0f, 0.0f, z);
-    }
-    glEnd();
-}
-
-void drawSky() {
-    glDisable(GL_DEPTH_TEST);
-    glMatrixMode(GL_PROJECTION);
+    glDisable(GL_LIGHTING);
+    
+    // Expanding orange-red blast wave
+    glColor4f(1.0f, 0.4f, 0.0f, blastIntensity * 0.8f);
     glPushMatrix();
-    glLoadIdentity();
-    
-    glBegin(GL_QUADS);
-    // Hazy sky
-    glColor4f(0.7f, 0.8f, 0.5f, 1.0f);
-    glVertex2f(-1.0f, -1.0f);
-    glVertex2f(1.0f, -1.0f);
-    glColor4f(0.3f, 0.5f, 0.7f, 1.0f);
-    glVertex2f(1.0f, 1.0f);
-    glVertex2f(-1.0f, 1.0f);
-    glEnd();
-    
+    glTranslatef(0.0f, 1.0f, 0.0f);
+    glutSolidSphere(blastRadius, 16, 16);
     glPopMatrix();
-    glMatrixMode(GL_MODELVIEW);
-    glEnable(GL_DEPTH_TEST);
+    
+    // Inner bright core
+    glColor4f(1.0f, 0.7f, 0.2f, blastIntensity);
+    glPushMatrix();
+    glTranslatef(0.0f, 1.0f, 0.0f);
+    glutSolidSphere(blastRadius * 0.6f, 12, 12);
+    glPopMatrix();
+    
+    glEnable(GL_LIGHTING);
 }
 
 void display() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     
-    // Camera overview of prehistoric landscape
-    gluLookAt(
-        0.0f, 5.0f, 12.0f,
-        0.0f, 0.0f, 0.0f,
-        0.0f, 1.0f, 0.0f
-    );
+    gluLookAt(0, 3, 10,    0, 1, 0,    0, 1, 0);
     
+    drawSky();
     drawGround();
-    
-    // Draw plants
-    for (const auto& plant : plants) {
-        drawFern(plant.x, plant.z, plant.height);
-    }
     
     // Update and draw dinosaurs
     for (auto& dino : dinosaurs) {
         dino.x += dino.speed;
-        
-        // Wrap around
-        if (dino.x > 15.0f) dino.x = -15.0f;
+        if (dino.x > 80.0f) dino.x = -80.0f;
         
         if (dino.type == 0) {
             drawTRex(dino.x, dino.z, dino.scale);
-        } else if (dino.type == 1) {
-            drawTriceratops(dino.x, dino.z, dino.scale);
         } else {
-            drawStegosaurus(dino.x, dino.z, dino.scale);
+            drawTriceratops(dino.x, dino.z, dino.scale);
         }
     }
+    
+    // Draw asteroid and blast
+    drawAsteroid();
+    drawBlast();
     
     // Text overlay
     glMatrixMode(GL_PROJECTION);
@@ -378,18 +363,21 @@ void display() {
     
     glDisable(GL_LIGHTING);
     glDisable(GL_DEPTH_TEST);
-    glColor4f(0.8f, 0.9f, 1.0f, 0.95f);
+    glColor3f(1.0f, 1.0f, 1.0f);
     glRasterPos2f(50, 50);
-    const char* title = "Chapter 14: Age of Dinosaurs";
-    for (const char* c = title; *c; c++) {
-        glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, *c);
+    
+    // Change title based on asteroid activity
+    const char* title;
+    if (asteroidActive) {
+        glColor3f(1.0f, 0.3f, 0.0f);
+        title = "Cretaceous-Paleogene Extinction Event";
+    } else {
+        glColor3f(1.0f, 1.0f, 1.0f);
+        title = "Chapter 14: Jurassic Period - Age of Dinosaurs";
     }
     
-    glRasterPos2f(50, 80);
-    char timeStr[50];
-    sprintf(timeStr, "Time: %.1f seconds", globalTime);
-    for (const char* c = timeStr; *c; c++) {
-        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
+    for (const char* c = title; *c; c++) {
+        glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, *c);
     }
     
     glEnable(GL_DEPTH_TEST);
@@ -406,12 +394,35 @@ void reshape(int w, int h) {
     glViewport(0, 0, w, h);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(60.0f, (float)w / (float)h, 0.1f, 100.0f);
-    glMatrixMode(GL_MODELVIEW);
+    gluPerspective(45.0f, (float)w / (float)h, 0.1f, 100.0f);
 }
 
-void timer(int value) {
+void timer(int v) {
     globalTime += 0.016f;
+    
+    // Asteroid appears after 8 seconds
+    if (globalTime > 8.0f && !asteroidActive) {
+        asteroidActive = true;
+    }
+    
+    // Asteroid movement
+    if (asteroidActive) {
+        asteroidX -= 0.2f;
+        asteroidY -= 0.15f;
+        
+        // Create blast when asteroid gets close to ground
+        if (asteroidY < 2.0f) {
+            blastRadius += 0.5f;
+            blastIntensity = fmaxf(0.0f, 1.0f - (blastRadius / 50.0f));
+            
+            if (blastRadius > 50.0f) {
+                // End scene after blast completes
+                asteroidActive = false;
+                blastRadius = 0.0f;
+            }
+        }
+    }
+    
     glutPostRedisplay();
     glutTimerFunc(16, timer, 0);
 }
@@ -422,38 +433,31 @@ void setupLighting() {
     glEnable(GL_COLOR_MATERIAL);
     glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
     
-    GLfloat light_position[] = {8.0f, 10.0f, 8.0f, 0.0f};
-    GLfloat light_ambient[] = {0.5f, 0.5f, 0.4f, 1.0f};
-    GLfloat light_diffuse[] = {1.0f, 1.0f, 0.9f, 1.0f};
-    GLfloat light_specular[] = {1.0f, 1.0f, 1.0f, 1.0f};
+    GLfloat light_position[] = {15.0f, 12.0f, 5.0f, 0.0f};
+    GLfloat light_ambient[] = {0.5f, 0.5f, 0.5f, 1.0f};
+    GLfloat light_diffuse[] = {0.8f, 0.8f, 0.8f, 1.0f};
+    GLfloat light_specular[] = {0.7f, 0.7f, 0.7f, 1.0f};
     
     glLightfv(GL_LIGHT0, GL_POSITION, light_position);
     glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
     glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
     glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
-    
-    GLfloat material_specular[] = {1.0f, 1.0f, 1.0f, 1.0f};
-    GLfloat material_shininess[] = {32.0f};
-    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, material_specular);
-    glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, material_shininess);
 }
 
 void init() {
-    glClearColor(0.7f, 0.8f, 0.5f, 1.0f);
+    glClearColor(0.5f, 0.5f, 0.5f, 1.0f);  // Gray background
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    
     setupLighting();
-    initializeDinosaurs();
-    initializePlants();
+    initDinosaurs();
 }
 
 int main(int argc, char** argv) {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
     glutInitWindowSize(800, 600);
-    glutCreateWindow("Chapter 14: Age of Dinosaurs");
+    glutCreateWindow("Chapter 14: Jurassic Period");
     
     init();
     

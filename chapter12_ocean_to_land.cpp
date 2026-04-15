@@ -142,194 +142,262 @@ void drawLand() {
     glEnd();
 }
 
-// Draw fish with evolutionary transitional features
+// Draw tetrapod creature - different morphology for water vs land
 void drawFish(float x, float y, float z, bool isWalking) {
     glPushMatrix();
     glTranslatef(x, y, z);
     
-    // Apply gravity/buoyancy physics
-    float gravityEffect = isWalking ? -0.15f : 0.0f;  // Gravity affects land walking
+    float gravityEffect = isWalking ? -0.15f : 0.0f;
     
-    // HEAD region with gills/lungs transition
-    glPushMatrix();
-    glTranslatef(0.4f, 0.0f, 0.0f);
-    glColor4f(0.5f, 0.7f, 0.6f, 0.9f);
-    glutSolidSphere(0.25f, 16, 16);
-    
-    // Gill slits (visible on swimming, fade on land)
     if (!isWalking) {
-        glDisable(GL_LIGHTING);
-        glColor4f(0.2f, 0.4f, 0.5f, 0.6f);
-        // Gill lines
-        for (int g = 0; g < 4; g++) {
+        // ===== AQUATIC FORM =====
+        // More fish-like with prominent fins
+        
+        // HEAD - smaller, streamlined
+        glPushMatrix();
+        glTranslatef(0.35f, 0.0f, 0.0f);
+        glColor3f(0.70f, 0.65f, 0.35f);
+        glScalef(1.1f, 0.9f, 1.0f);
+        glutSolidSphere(0.22f, 16, 16);
+        glPopMatrix();
+        
+        // Small snout
+        glPushMatrix();
+        glTranslatef(0.55f, 0.0f, 0.0f);
+        glColor3f(0.68f, 0.63f, 0.33f);
+        glScalef(0.7f, 0.8f, 0.85f);
+        glutSolidSphere(0.12f, 12, 12);
+        glPopMatrix();
+        
+        // Eye
+        glPushMatrix();
+        glTranslatef(0.30f, 0.12f, 0.18f);
+        glColor3f(0.0f, 0.0f, 0.0f);
+        glutSolidSphere(0.07f, 8, 8);
+        glPopMatrix();
+        
+        // ELONGATED BODY - streamlined for water
+        glPushMatrix();
+        glTranslatef(0.0f, 0.0f, 0.0f);
+        glColor3f(0.65f, 0.60f, 0.30f);
+        glScalef(2.8f, 0.85f, 0.88f);
+        glutSolidSphere(0.35f, 20, 20);
+        glPopMatrix();
+        
+        // LARGE DORSAL FIN (prominent in water)
+        glPushMatrix();
+        glTranslatef(-0.15f, 0.32f, 0.0f);
+        glColor3f(0.55f, 0.50f, 0.25f);
+        float dorsal = sinf(globalTime * 3.0f) * 0.15f;
+        glRotatef(dorsal * 5.0f, 1.0f, 0.0f, 0.0f);
+        
+        // Dorsal fin ridges
+        for (int d = 0; d < 6; d++) {
+            float finX = -0.2f + (d * 0.12f);
+            float finHeight = 0.40f - (fabs(d - 2.5f) * 0.07f);
             glPushMatrix();
-            glTranslatef(-0.1f - g * 0.08f, -0.08f, 0.2f);
-            glBegin(GL_LINES);
-            glVertex3f(0.0f, 0.0f, 0.0f);
-            glVertex3f(0.0f, 0.15f, 0.0f);
-            glEnd();
+            glTranslatef(finX, 0.0f, 0.0f);
+            glScalef(0.08f, finHeight, 0.15f);
+            glutSolidCube(1.0f);
             glPopMatrix();
         }
-        glEnable(GL_LIGHTING);
-    }
-    
-    // Eye
-    glPushMatrix();
-    glTranslatef(0.15f, 0.1f, 0.15f);
-    glColor4f(0.1f, 0.1f, 0.1f, 1.0f);
-    glutSolidSphere(0.06f, 8, 8);
-    glPopMatrix();
-    glPopMatrix();
-    
-    // BODY - more streamlined in water, stockier on land
-    glPushMatrix();
-    glTranslatef(0.0f, gravityEffect, 0.0f);
-    float bodyScaleX = isWalking ? 1.4f : 2.5f;
-    float bodyScaleY = isWalking ? 1.2f : 0.8f;
-    float bodyScaleZ = isWalking ? 1.1f : 1.0f;
-    glScalef(bodyScaleX, bodyScaleY, bodyScaleZ);
-    glColor4f(0.4f, 0.7f, 0.6f, 0.85f);
-    glutSolidSphere(0.4f, 20, 20);
-    glPopMatrix();
-    
-    // Dorsal fin (large in water, reduced on land)
-    if (!isWalking) {
-        glPushMatrix();
-        glTranslatef(0.0f, 0.35f, 0.0f);
-        glColor4f(0.3f, 0.6f, 0.5f, 0.7f);
-        float dorsal = sinf(globalTime * 3.0f) * 0.2f;
-        glRotatef(dorsal * 10.0f, 1.0f, 0.0f, 0.0f);
-        glScalef(0.15f, 0.4f, 0.08f);
-        glutSolidSphere(0.4f, 10, 10);
         glPopMatrix();
-    }
-    
-    // TAIL/POST-ANAL FIN region
-    if (!isWalking) {
+        
+        // LARGE TAIL FIN (for aquatic propulsion)
         glPushMatrix();
-        glTranslatef(-0.5f, 0.0f, 0.0f);
-        float tailWave = sinf(globalTime * 5.0f) * 0.3f;
+        glTranslatef(-0.65f, 0.0f, 0.0f);
+        float tailWave = sinf(globalTime * 4.5f) * 0.4f;
         glRotatef(tailWave * 25.0f, 0.0f, 1.0f, 0.0f);
-        glColor4f(0.35f, 0.65f, 0.55f, 0.8f);
-        glutSolidCone(0.2f, 0.6f, 12, 12);
+        glColor3f(0.60f, 0.55f, 0.28f);
+        glutSolidCone(0.22f, 0.65f, 16, 16);
         glPopMatrix();
-    } else {
-        // Tail becomes caudal fin support for hind limbs
-        glPushMatrix();
-        glTranslatef(-0.5f, gravityEffect * 0.5f, 0.0f);
-        glColor4f(0.35f, 0.65f, 0.55f, 0.5f);
-        glutSolidSphere(0.12f, 8, 8);
-        glPopMatrix();
-    }
-    
-    // PECTORAL/PELVIC FINS to LIMBS transition with realistic tetrapod development
-    if (!isWalking) {
-        // Pectoral fins (evolving into front limbs)
-        glColor4f(0.3f, 0.6f, 0.5f, 0.75f);
-        GLUquadric* quad = gluNewQuadric();
+        
+        // PECTORAL FINS (large, fin-like)
+        glColor3f(0.62f, 0.57f, 0.32f);
         
         // Left pectoral fin
         glPushMatrix();
-        glTranslatef(0.1f, -0.15f, 0.4f);
-        float finWave1 = sinf(globalTime * 4.0f + 1.57f) * 0.4f;
-        glRotatef(finWave1 * 30.0f, 0.0f, 0.0f, 1.0f);
-        gluCylinder(quad, 0.08f, 0.06f, 0.5f, 8, 8);
+        glTranslatef(0.1f, -0.1f, 0.45f);
+        float finWave1 = sinf(globalTime * 3.5f) * 0.35f;
+        glRotatef(finWave1 * 35.0f, 0.0f, 0.0f, 1.0f);
+        glScalef(1.0f, 0.15f, 0.6f);
+        glutSolidSphere(0.18f, 12, 12);
         glPopMatrix();
         
         // Right pectoral fin
         glPushMatrix();
-        glTranslatef(0.1f, -0.15f, -0.4f);
-        float finWave2 = sinf(globalTime * 4.0f) * 0.4f;
-        glRotatef(finWave2 * 30.0f, 0.0f, 0.0f, 1.0f);
-        gluCylinder(quad, 0.08f, 0.06f, 0.5f, 8, 8);
+        glTranslatef(0.1f, -0.1f, -0.45f);
+        float finWave2 = sinf(globalTime * 3.5f) * 0.35f;
+        glRotatef(finWave2 * 35.0f, 0.0f, 0.0f, 1.0f);
+        glScalef(1.0f, 0.15f, 0.6f);
+        glutSolidSphere(0.18f, 12, 12);
         glPopMatrix();
         
-        // Pelvic fins (smaller, evolving)
-        glColor4f(0.25f, 0.55f, 0.45f, 0.6f);
+        // PELVIC FINS (smaller, visible)
+        glColor3f(0.58f, 0.53f, 0.28f);
         glPushMatrix();
-        glTranslatef(-0.2f, -0.2f, 0.3f);
-        gluCylinder(quad, 0.06f, 0.05f, 0.3f, 8, 8);
+        glTranslatef(-0.15f, -0.25f, 0.32f);
+        glScalef(0.65f, 0.12f, 0.35f);
+        glutSolidSphere(0.12f, 10, 10);
         glPopMatrix();
         
         glPushMatrix();
-        glTranslatef(-0.2f, -0.2f, -0.3f);
-        gluCylinder(quad, 0.06f, 0.05f, 0.3f, 8, 8);
+        glTranslatef(-0.15f, -0.25f, -0.32f);
+        glScalef(0.65f, 0.12f, 0.35f);
+        glutSolidSphere(0.12f, 10, 10);
         glPopMatrix();
+        // SCALES (visual detail)
+        glDisable(GL_LIGHTING);
+        glColor3f(0.55f, 0.50f, 0.25f);
+        for (int s = 0; s < 5; s++) {
+            float scaleX = -0.2f + (s * 0.25f);
+            for (int sz = 0; sz < 3; sz++) {
+                float offset = (sz - 1) * 0.2f;
+                glPushMatrix();
+                glTranslatef(scaleX, 0.15f, offset);
+                glBegin(GL_LINES);
+                glVertex3f(-0.08f, 0.0f, 0.0f);
+                glVertex3f(0.08f, 0.0f, 0.0f);
+                glEnd();
+                glPopMatrix();
+            }
+        }
+        glEnable(GL_LIGHTING);
+        
     } else {
-        // WALKING LEGS (tetrapod limbs on land) with gravity and biomechanics
+        // ===== TERRESTRIAL FORM =====
+        // Robust tetrapod with four strong limbs
+        
+        // Large prominent head
+        glPushMatrix();
+        glTranslatef(0.45f, 0.05f, 0.0f);
+        glColor3f(0.45f, 0.65f, 0.50f);
+        glScalef(1.3f, 1.0f, 1.1f);
+        glutSolidSphere(0.28f, 18, 18);
+        glPopMatrix();
+        
+        // Snout/jaw (protruding)
+        glPushMatrix();
+        glTranslatef(0.7f, 0.05f, 0.0f);
+        glColor3f(0.40f, 0.60f, 0.45f);
+        glScalef(0.8f, 0.65f, 0.9f);
+        glutSolidSphere(0.18f, 14, 14);
+        glPopMatrix();
+        
+        // TEETH on lower jaw
+        glDisable(GL_LIGHTING);
+        glColor3f(1.0f, 0.95f, 0.85f);
+        for (int t = 0; t < 8; t++) {
+            glPushMatrix();
+            glTranslatef(0.62f + (t * 0.08f), -0.12f, -0.12f);
+            glScalef(0.08f, 0.15f, 0.06f);
+            glutSolidCube(1.0f);
+            glPopMatrix();
+        }
+        glEnable(GL_LIGHTING);
+        
+        // Eye
+        glPushMatrix();
+        glTranslatef(0.35f, 0.15f, 0.2f);
+        glColor3f(0.0f, 0.0f, 0.0f);
+        glutSolidSphere(0.08f, 10, 10);
+        glPopMatrix();
+        
+        // ROBUST BODY
+        glPushMatrix();
+        glTranslatef(0.0f, gravityEffect, 0.0f);
+        glColor3f(0.50f, 0.70f, 0.55f);
+        glScalef(2.0f, 1.1f, 0.95f);
+        glutSolidSphere(0.38f, 20, 20);
+        glPopMatrix();
+        
+        // Visible vertebral column
+        glDisable(GL_LIGHTING);
+        glColor3f(0.35f, 0.55f, 0.40f);
+        for (int r = 0; r < 6; r++) {
+            float ribX = -0.1f + (r * 0.25f);
+            for (int s = 0; s < 3; s++) {
+                float offset = (s - 1) * 0.15f;
+                glPushMatrix();
+                glTranslatef(ribX, 0.25f + gravityEffect, offset);
+                glBegin(GL_LINES);
+                glVertex3f(0.0f, 0.0f, 0.0f);
+                glVertex3f(0.0f, -0.35f, 0.0f);
+                glEnd();
+                glPopMatrix();
+            }
+        }
+        glEnable(GL_LIGHTING);
+        
+        // ===== FOUR LIMBS =====
         GLUquadric* quad = gluNewQuadric();
-        glColor4f(0.2f, 0.5f, 0.4f, 0.95f);
         
-        // Gravity affects leg position
-        float legBaseY = -0.35f + gravityEffect * 0.5f;
-        
-        // Front left leg - pectoral evolved to forelimb (humerus, radius/ulna, digits)
+        // FRONT LEFT LIMB
         glPushMatrix();
-        glTranslatef(0.25f, legBaseY, 0.35f);
-        float legSwing1 = sinf(globalTime * 5.0f) * 50.0f;
-        glRotatef(legSwing1, 1.0f, 0.0f, 0.0f);
-        gluCylinder(quad, 0.13f, 0.11f, 0.65f, 10, 10);  // Humerus
-        
-        // Forearm/foot
-        glTranslatef(0.0f, -0.65f, 0.0f);
-        float forearmRot = sinf(globalTime * 5.0f) * 30.0f;
-        glRotatef(forearmRot, 1.0f, 0.0f, 0.0f);
-        glColor4f(0.22f, 0.52f, 0.42f, 0.9f);
-        gluCylinder(quad, 0.11f, 0.09f, 0.4f, 10, 10);  // Radius/Ulna
-        glTranslatef(0.0f, -0.4f, 0.0f);
-        glColor4f(0.18f, 0.48f, 0.38f, 0.85f);
-        glutSolidSphere(0.16f, 10, 10);  // Carpus/digits
-        glPopMatrix();
-        
-        // Front right leg - opposite phase
-        glPushMatrix();
-        glTranslatef(0.25f, legBaseY, -0.35f);
-        float legSwing2 = sinf(globalTime * 5.0f + 3.14159f) * 50.0f;
-        glRotatef(legSwing2, 1.0f, 0.0f, 0.0f);
-        glColor4f(0.2f, 0.5f, 0.4f, 0.95f);
-        gluCylinder(quad, 0.13f, 0.11f, 0.65f, 10, 10);
-        glTranslatef(0.0f, -0.65f, 0.0f);
-        float forearmRot2 = sinf(globalTime * 5.0f + 3.14159f) * 30.0f;
-        glRotatef(forearmRot2, 1.0f, 0.0f, 0.0f);
-        glColor4f(0.22f, 0.52f, 0.42f, 0.9f);
-        gluCylinder(quad, 0.11f, 0.09f, 0.4f, 10, 10);
-        glTranslatef(0.0f, -0.4f, 0.0f);
-        glColor4f(0.18f, 0.48f, 0.38f, 0.85f);
-        glutSolidSphere(0.16f, 10, 10);
-        glPopMatrix();
-        
-        // Rear left leg - pelvic evolved to hind limb (femur, tibia/fibula, tarsus)
-        glPushMatrix();
-        glTranslatef(-0.25f, legBaseY + 0.05f, 0.35f);
-        float legSwing3 = sinf(globalTime * 5.0f + 3.14159f) * 50.0f;
-        glRotatef(legSwing3, 1.0f, 0.0f, 0.0f);
-        glColor4f(0.25f, 0.55f, 0.45f, 0.95f);
-        gluCylinder(quad, 0.14f, 0.12f, 0.7f, 10, 10);  // Femur (stronger)
+        glTranslatef(0.2f, -0.25f + gravityEffect, 0.38f);
+        float frontLeftSwing = sinf(globalTime * 5.0f) * 45.0f;
+        glRotatef(frontLeftSwing, 1.0f, 0.0f, 0.0f);
+        glColor3f(0.48f, 0.68f, 0.58f);
+        gluCylinder(quad, 0.14f, 0.12f, 0.7f, 12, 12);
         glTranslatef(0.0f, -0.7f, 0.0f);
-        float tibiRot = sinf(globalTime * 5.0f + 3.14159f) * 40.0f;
-        glRotatef(tibiRot, 1.0f, 0.0f, 0.0f);
-        glColor4f(0.27f, 0.57f, 0.47f, 0.9f);
-        gluCylinder(quad, 0.12f, 0.10f, 0.5f, 10, 10);  // Tibia/Fibula
+        float forearmSwing = sinf(globalTime * 5.0f) * 30.0f;
+        glRotatef(forearmSwing, 1.0f, 0.0f, 0.0f);
+        glColor3f(0.45f, 0.65f, 0.55f);
+        gluCylinder(quad, 0.12f, 0.10f, 0.5f, 12, 12);
         glTranslatef(0.0f, -0.5f, 0.0f);
-        glColor4f(0.23f, 0.53f, 0.43f, 0.85f);
-        glutSolidSphere(0.17f, 10, 10);  // Tarsus/digits
+        glColor3f(0.42f, 0.62f, 0.52f);
+        glutSolidSphere(0.12f, 10, 10);
         glPopMatrix();
         
-        // Rear right leg - opposite phase
+        // FRONT RIGHT LIMB
         glPushMatrix();
-        glTranslatef(-0.25f, legBaseY + 0.05f, -0.35f);
-        float legSwing4 = sinf(globalTime * 5.0f) * 50.0f;
-        glRotatef(legSwing4, 1.0f, 0.0f, 0.0f);
-        glColor4f(0.25f, 0.55f, 0.45f, 0.95f);
-        gluCylinder(quad, 0.14f, 0.12f, 0.7f, 10, 10);
+        glTranslatef(0.2f, -0.25f + gravityEffect, -0.38f);
+        float frontRightSwing = sinf(globalTime * 5.0f + 3.14159f) * 45.0f;
+        glRotatef(frontRightSwing, 1.0f, 0.0f, 0.0f);
+        glColor3f(0.48f, 0.68f, 0.58f);
+        gluCylinder(quad, 0.14f, 0.12f, 0.7f, 12, 12);
         glTranslatef(0.0f, -0.7f, 0.0f);
-        float tibiRot2 = sinf(globalTime * 5.0f) * 40.0f;
-        glRotatef(tibiRot2, 1.0f, 0.0f, 0.0f);
-        glColor4f(0.27f, 0.57f, 0.47f, 0.9f);
-        gluCylinder(quad, 0.12f, 0.10f, 0.5f, 10, 10);
+        float forearmSwing2 = sinf(globalTime * 5.0f + 3.14159f) * 30.0f;
+        glRotatef(forearmSwing2, 1.0f, 0.0f, 0.0f);
+        glColor3f(0.45f, 0.65f, 0.55f);
+        gluCylinder(quad, 0.12f, 0.10f, 0.5f, 12, 12);
         glTranslatef(0.0f, -0.5f, 0.0f);
-        glColor4f(0.23f, 0.53f, 0.43f, 0.85f);
-        glutSolidSphere(0.17f, 10, 10);
+        glColor3f(0.42f, 0.62f, 0.52f);
+        glutSolidSphere(0.12f, 10, 10);
+        glPopMatrix();
+        
+        // HIND LEFT LIMB
+        glPushMatrix();
+        glTranslatef(-0.2f, -0.30f + gravityEffect, 0.36f);
+        float hindLeftSwing = sinf(globalTime * 5.0f + 3.14159f) * 50.0f;
+        glRotatef(hindLeftSwing, 1.0f, 0.0f, 0.0f);
+        glColor3f(0.52f, 0.72f, 0.62f);
+        gluCylinder(quad, 0.16f, 0.14f, 0.8f, 12, 12);
+        glTranslatef(0.0f, -0.8f, 0.0f);
+        float shinSwing = sinf(globalTime * 5.0f + 3.14159f) * 35.0f;
+        glRotatef(shinSwing, 1.0f, 0.0f, 0.0f);
+        glColor3f(0.50f, 0.70f, 0.60f);
+        gluCylinder(quad, 0.13f, 0.11f, 0.6f, 12, 12);
+        glTranslatef(0.0f, -0.6f, 0.0f);
+        glColor3f(0.48f, 0.68f, 0.58f);
+        glutSolidSphere(0.13f, 10, 10);
+        glPopMatrix();
+        
+        // HIND RIGHT LIMB
+        glPushMatrix();
+        glTranslatef(-0.2f, -0.30f + gravityEffect, -0.36f);
+        float hindRightSwing = sinf(globalTime * 5.0f) * 50.0f;
+        glRotatef(hindRightSwing, 1.0f, 0.0f, 0.0f);
+        glColor3f(0.52f, 0.72f, 0.62f);
+        gluCylinder(quad, 0.16f, 0.14f, 0.8f, 12, 12);
+        glTranslatef(0.0f, -0.8f, 0.0f);
+        float shinSwing2 = sinf(globalTime * 5.0f) * 35.0f;
+        glRotatef(shinSwing2, 1.0f, 0.0f, 0.0f);
+        glColor3f(0.50f, 0.70f, 0.60f);
+        gluCylinder(quad, 0.13f, 0.11f, 0.6f, 12, 12);
+        glTranslatef(0.0f, -0.6f, 0.0f);
+        glColor3f(0.48f, 0.68f, 0.58f);
+        glutSolidSphere(0.13f, 10, 10);
         glPopMatrix();
     }
     

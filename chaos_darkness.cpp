@@ -501,7 +501,9 @@ void drawTitleText() {
         alpha = (4.5f - globalTime) / 0.5f; // Fade out
     }
     
-    glColor4f(0.9f, 0.2f, 0.9f, alpha);
+    // Pulsing glow effect - yellow/white for Big Bang
+    float glow = 1.0f + sin(globalTime * 4.0f) * 0.3f;
+    glColor4f(1.0f, 0.9f, 0.3f, alpha * glow);
     
     // Disable depth test for text rendering
     glDisable(GL_DEPTH_TEST);
@@ -515,7 +517,7 @@ void drawTitleText() {
     glPushMatrix();
     glLoadIdentity();
     
-    drawText(-0.35f, 0.3f, -0.9f, "CHAOS AND DARKNESS", GLUT_BITMAP_TIMES_ROMAN_24);
+    drawText(-0.25f, 0.3f, -0.9f, "THE BIG BANG", GLUT_BITMAP_TIMES_ROMAN_24);
     
     // Restore matrices
     glPopMatrix();
@@ -650,12 +652,11 @@ void display() {
     glutSwapBuffers();
 }
 
-void idle() {
+void updateFrame() {
     globalTime += deltaTime;
     
     // Auto-exit Chapter 1 after 25 seconds
     if (globalTime > 25.0f) {
-        std::cout << "Chapter 1 complete. Press ESC or wait for next chapter." << std::endl;
         globalTime = 25.0f;  // Hold at 25 seconds
     }
     
@@ -667,7 +668,7 @@ void idle() {
 }
 
 void timer(int value) {
-    idle();
+    updateFrame();
     glutTimerFunc(16, timer, 0); // ~60 FPS
 }
 
@@ -691,7 +692,6 @@ int main(int argc, char** argv) {
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
     glutKeyboardFunc(keyboard);
-    glutIdleFunc(idle);
     
     // Initialize OpenGL
     init();

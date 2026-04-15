@@ -27,67 +27,47 @@ void initializePlants() {
     }
 }
 
-// Draw a realistic vertical plant - early terrestrial bryophyte/early vascular plant
+// Draw a realistic vertical plant - Devonian early terrestrial plant
 void drawPlant(float x, float z, float time) {
     glPushMatrix();
+    
+    // Position tree on ground at base
     glTranslatef(x, 0.0f, z);
     
-    // Stem (vertical cylinder) - realistic plant stance
-    GLUquadric* quad = gluNewQuadric();
-    glColor4f(0.35f, 0.65f, 0.25f, 0.95f);
+    // ===== TRUNK =====
+    // Cylinder is along Z by default → rotate -90° around X axis to make it grow along Y
+    glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
     
-    // Subtle sway from wind (bending slightly)
-    float sway = sinf(time * 1.0f + x * 0.15f + z * 0.1f) * 6.0f;
+    glColor3f(0.4f, 0.25f, 0.1f);
+    GLUquadric* quad = gluNewQuadric();
+    gluCylinder(quad, 0.08f, 0.06f, 1.2f, 10, 10);
+    
+    glPopMatrix();
+    
+    // ===== FOLIAGE/LEAVES =====
+    glPushMatrix();
+    
+    // Move to top of trunk
+    glTranslatef(x, 1.2f, z);
+    
+    // Slight sway effect (gentle wind)
+    float sway = sinf(time * 0.8f + x * 0.1f + z * 0.1f) * 4.0f;
     glRotatef(sway, 0.0f, 0.0f, 1.0f);
     
-    gluCylinder(quad, 0.12f, 0.10f, 1.1f, 8, 8);
+    // Main foliage crown (cone shape)
+    glColor3f(0.15f, 0.65f, 0.2f);
+    glutSolidCone(0.35f, 0.8f, 16, 16);
     
-    // Realistic fronds/leaves spiraling up the stem (primitive plant morphology)
-    glDisable(GL_LIGHTING);
-    glColor4f(0.25f, 0.75f, 0.2f, 0.88f);
-    
-    for (int i = 0; i < 8; i++) {
-        glPushMatrix();
-        // Position along stem height
-        float heightPos = 0.15f + (i / 8.0f) * 0.85f;
-        glTranslatef(0.0f, heightPos, 0.0f);
-        
-        // Spiral arrangement (alternating sides)
-        float spiralAngle = (i / 8.0f) * 6.283f * 2.0f;
-        float offsetX = 0.18f * cosf(spiralAngle);
-        float offsetZ = 0.18f * sinf(spiralAngle);
-        glTranslatef(offsetX, 0.0f, offsetZ);
-        
-        // Leaf frond (triangle pointing slightly upward)
-        glBegin(GL_TRIANGLES);
-        glVertex3f(0.0f, 0.0f, 0.0f);
-        glVertex3f(offsetX * 0.8f, 0.25f, offsetZ * 0.8f);
-        glVertex3f(offsetX * 0.6f, 0.35f, offsetZ * 0.6f);
-        glEnd();
-        
-        glPopMatrix();
-    }
-    
-    // Topmost frond cluster (apical meristem region)
+    // Secondary foliage layer (sphere for fullness)
     glPushMatrix();
-    glTranslatef(0.0f, 1.0f, 0.0f);
-    glColor4f(0.3f, 0.8f, 0.25f, 0.85f);
-    for (int i = 0; i < 4; i++) {
-        float angle = (i / 4.0f) * 6.283f;
-        glPushMatrix();
-        glTranslatef(0.15f * cosf(angle), 0.0f, 0.15f * sinf(angle));
-        glBegin(GL_TRIANGLES);
-        glVertex3f(0.0f, 0.0f, 0.0f);
-        glVertex3f(0.1f * cosf(angle), 0.2f, 0.1f * sinf(angle));
-        glVertex3f(0.08f * cosf(angle), 0.25f, 0.08f * sinf(angle));
-        glEnd();
-        glPopMatrix();
-    }
+    glTranslatef(0.0f, 0.25f, 0.0f);
+    glColor3f(0.2f, 0.7f, 0.25f);
+    glutSolidSphere(0.3f, 14, 14);
     glPopMatrix();
     
-    glEnable(GL_LIGHTING);
     glPopMatrix();
 }
+
 
 // Draw water plane with realistic wave physics
 void drawOcean() {
@@ -418,20 +398,20 @@ void display() {
     }
     
     glRasterPos2f(50, 80);
-    const char* status = isWalking ? "Status: TERRESTRIAL TETRAPOD - Advanced limb development" : "Status: AQUATIC - Fin-based locomotion";
+    const char* status = isWalking ? "Status: TERRESTRIAL TETRAPOD - Limb-based locomotion" : "Status: AQUATIC - Fin-based locomotion";
     for (const char* c = status; *c; c++) {
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
     }
     
     glRasterPos2f(50, 110);
-    const char* evolution = isWalking ? "Evolutionary Stage: Late Devonian tetrapod (Humerus-Radius/Ulna-Carpus-Digits)" : "Evolutionary Stage: Fish with developing limbs";
+    const char* evolution = isWalking ? "Evolutionary Stage: Late Devonian tetrapod" : "Evolutionary Stage: Early fish with developing limbs";
     for (const char* c = evolution; *c; c++) {
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, *c);
     }
     
     glRasterPos2f(50, 135);
-    const char* physics = isWalking ? "Physics: Gravity, terrestrial locomotion, joint-based biomechanics" : "Physics: Buoyancy, drag coefficient, fin wave propagation";
-    for (const char* c = physics; *c; c++) {
+    const char* adaptation = isWalking ? "Adaptation: Terrestrial colonization" : "Adaptation: Aquatic environment mastery";
+    for (const char* c = adaptation; *c; c++) {
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, *c);
     }
     

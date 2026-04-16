@@ -79,25 +79,26 @@ void drawTRex(float x, float z, float scale) {
     glTranslatef(x, 0.0f, z);
     glScalef(scale, scale, scale);
     
-    // Body (large)
+    // Body (large) - RAISED UP
     glPushMatrix();
+    glTranslatef(0.0f, 1.5f, 0.0f);
     glColor3f(0.6f, 0.4f, 0.2f);  // Brown
     glScalef(2.5f, 1.2f, 1.0f);
     glutSolidSphere(0.8f, 16, 16);
     glPopMatrix();
     
-    // Neck
+    // Neck - adjusted for raised body
     glPushMatrix();
-    glTranslatef(1.2f, 0.8f, 0.0f);
+    glTranslatef(1.2f, 2.2f, 0.0f);
     glColor3f(0.65f, 0.45f, 0.25f);
     glRotatef(20.0f, 0.0f, 0.0f, 1.0f);
     glScalef(0.7f, 1.5f, 0.7f);
     glutSolidSphere(0.4f, 12, 12);
     glPopMatrix();
     
-    // Head
+    // Head - adjusted for raised body
     glPushMatrix();
-    glTranslatef(1.8f, 1.6f, 0.0f);
+    glTranslatef(1.8f, 3.0f, 0.0f);
     glColor3f(0.7f, 0.5f, 0.3f);
     glScalef(1.1f, 0.9f, 0.85f);
     glutSolidSphere(0.5f, 14, 14);
@@ -112,48 +113,48 @@ void drawTRex(float x, float z, float scale) {
     
     glPopMatrix();
     
-    // Eye
+    // Eye - adjusted for raised head
     glPushMatrix();
-    glTranslatef(2.0f, 1.8f, 0.35f);
+    glTranslatef(2.0f, 3.2f, 0.35f);
     glColor3f(0.8f, 0.7f, 0.5f);
     glutSolidSphere(0.15f, 8, 8);
     glPopMatrix();
     
-    // Front left leg
+    // Front left leg - connects from body to ground
     glPushMatrix();
-    glTranslatef(0.5f, -0.7f, 0.6f);
+    glTranslatef(0.5f, 0.8f, 0.6f);
     glColor3f(0.4f, 0.25f, 0.05f);
-    glScalef(0.65f, 2.2f, 0.65f);
+    glScalef(0.65f, 1.8f, 0.65f);
     glutSolidSphere(0.42f, 12, 12);
     glPopMatrix();
     
-    // Front right leg
+    // Front right leg - connects from body to ground
     glPushMatrix();
-    glTranslatef(0.5f, -0.7f, -0.6f);
+    glTranslatef(0.5f, 0.8f, -0.6f);
     glColor3f(0.4f, 0.25f, 0.05f);
-    glScalef(0.65f, 2.2f, 0.65f);
+    glScalef(0.65f, 1.8f, 0.65f);
     glutSolidSphere(0.42f, 12, 12);
     glPopMatrix();
     
-    // Back left leg
+    // Back left leg - connects from body to ground
     glPushMatrix();
-    glTranslatef(-1.0f, -0.7f, 0.7f);
+    glTranslatef(-1.0f, 0.8f, 0.7f);
     glColor3f(0.4f, 0.25f, 0.05f);
-    glScalef(0.75f, 2.4f, 0.75f);
+    glScalef(0.75f, 2.0f, 0.75f);
     glutSolidSphere(0.45f, 12, 12);
     glPopMatrix();
     
-    // Back right leg
+    // Back right leg - connects from body to ground
     glPushMatrix();
-    glTranslatef(-1.0f, -0.7f, -0.7f);
+    glTranslatef(-1.0f, 0.8f, -0.7f);
     glColor3f(0.4f, 0.25f, 0.05f);
-    glScalef(0.75f, 2.4f, 0.75f);
+    glScalef(0.75f, 2.0f, 0.75f);
     glutSolidSphere(0.45f, 12, 12);
     glPopMatrix();
     
-    // Tail
+    // Tail - adjusted for raised body
     glPushMatrix();
-    glTranslatef(-2.0f, 0.5f, 0.0f);
+    glTranslatef(-2.0f, 1.9f, 0.0f);
     float tailSway = sinf(globalTime * 3.0f) * 15.0f;
     glRotatef(tailSway, 0.0f, 0.0f, 1.0f);
     glColor3f(0.5f, 0.3f, 0.1f);
@@ -161,16 +162,16 @@ void drawTRex(float x, float z, float scale) {
     glutSolidCone(0.35f, 2.0f, 10, 10);
     glPopMatrix();
     
-    // Small arms
+    // Small arms - adjusted for raised body
     glColor3f(0.5f, 0.3f, 0.1f);
     glPushMatrix();
-    glTranslatef(0.8f, 0.2f, 0.3f);
+    glTranslatef(0.8f, 1.6f, 0.3f);
     glScalef(0.3f, 0.6f, 0.3f);
     glutSolidSphere(0.25f, 8, 8);
     glPopMatrix();
     
     glPushMatrix();
-    glTranslatef(0.8f, 0.2f, -0.3f);
+    glTranslatef(0.8f, 1.6f, -0.3f);
     glScalef(0.3f, 0.6f, 0.3f);
     glutSolidSphere(0.25f, 8, 8);
     glPopMatrix();
@@ -183,16 +184,17 @@ void drawTriceratops(float x, float z, float scale) {
     glTranslatef(x, 0.0f, z);
     glScalef(scale, scale, scale);
     
-    // Body
+    // Body - RAISED UP
     glPushMatrix();
+    glTranslatef(0.0f, 1.4f, 0.0f);
     glColor3f(0.65f, 0.45f, 0.25f);  // Brown
     glScalef(2.2f, 1.1f, 0.95f);
     glutSolidSphere(0.75f, 16, 16);
     glPopMatrix();
     
-    // Neck/Head
+    // Neck/Head - adjusted for raised body
     glPushMatrix();
-    glTranslatef(1.0f, 0.6f, 0.0f);
+    glTranslatef(1.0f, 1.9f, 0.0f);
     glColor3f(0.7f, 0.5f, 0.3f);
     glScalef(1.0f, 0.8f, 1.0f);
     glutSolidSphere(0.6f, 14, 14);
@@ -200,7 +202,7 @@ void drawTriceratops(float x, float z, float scale) {
     
     // Front horn
     glPushMatrix();
-    glTranslatef(1.5f, 1.3f, 0.0f);
+    glTranslatef(1.5f, 2.6f, 0.0f);
     glColor3f(0.8f, 0.7f, 0.5f);
     glRotatef(25.0f, 0.0f, 0.0f, 1.0f);
     glutSolidCone(0.18f, 0.8f, 8, 8);
@@ -208,7 +210,7 @@ void drawTriceratops(float x, float z, float scale) {
     
     // Left back horn
     glPushMatrix();
-    glTranslatef(0.8f, 1.1f, 0.35f);
+    glTranslatef(0.8f, 2.4f, 0.35f);
     glColor3f(0.75f, 0.65f, 0.45f);
     glRotatef(30.0f, 0.0f, 0.0f, 1.0f);
     glutSolidCone(0.12f, 0.6f, 8, 8);
@@ -216,47 +218,47 @@ void drawTriceratops(float x, float z, float scale) {
     
     // Right back horn
     glPushMatrix();
-    glTranslatef(0.8f, 1.1f, -0.35f);
+    glTranslatef(0.8f, 2.4f, -0.35f);
     glColor3f(0.75f, 0.65f, 0.45f);
     glRotatef(-30.0f, 0.0f, 0.0f, 1.0f);
     glutSolidCone(0.12f, 0.6f, 8, 8);
     glPopMatrix();
     
-    // Front left leg
+    // Front left leg - connects from body to ground
     glPushMatrix();
-    glTranslatef(0.6f, -0.6f, 0.6f);
+    glTranslatef(0.6f, 0.8f, 0.6f);
     glColor3f(0.45f, 0.3f, 0.1f);
-    glScalef(0.65f, 2.1f, 0.65f);
+    glScalef(0.65f, 1.8f, 0.65f);
     glutSolidSphere(0.4f, 12, 12);
     glPopMatrix();
     
-    // Front right leg
+    // Front right leg - connects from body to ground
     glPushMatrix();
-    glTranslatef(0.6f, -0.6f, -0.6f);
+    glTranslatef(0.6f, 0.8f, -0.6f);
     glColor3f(0.45f, 0.3f, 0.1f);
-    glScalef(0.65f, 2.1f, 0.65f);
+    glScalef(0.65f, 1.8f, 0.65f);
     glutSolidSphere(0.4f, 12, 12);
     glPopMatrix();
     
-    // Back left leg
+    // Back left leg - connects from body to ground
     glPushMatrix();
-    glTranslatef(-0.8f, -0.6f, 0.7f);
+    glTranslatef(-0.8f, 0.8f, 0.7f);
     glColor3f(0.45f, 0.3f, 0.1f);
-    glScalef(0.7f, 2.2f, 0.7f);
+    glScalef(0.7f, 1.9f, 0.7f);
     glutSolidSphere(0.42f, 12, 12);
     glPopMatrix();
     
-    // Back right leg
+    // Back right leg - connects from body to ground
     glPushMatrix();
-    glTranslatef(-0.8f, -0.6f, -0.7f);
+    glTranslatef(-0.8f, 0.8f, -0.7f);
     glColor3f(0.45f, 0.3f, 0.1f);
-    glScalef(0.7f, 2.2f, 0.7f);
+    glScalef(0.7f, 1.9f, 0.7f);
     glutSolidSphere(0.42f, 12, 12);
     glPopMatrix();
     
-    // Tail
+    // Tail - adjusted for raised body
     glPushMatrix();
-    glTranslatef(-1.8f, 0.3f, 0.0f);
+    glTranslatef(-1.8f, 1.7f, 0.0f);
     float tailSway = sinf(globalTime * 2.5f) * 12.0f;
     glRotatef(tailSway, 0.0f, 0.0f, 1.0f);
     glColor3f(0.55f, 0.35f, 0.15f);
@@ -373,7 +375,7 @@ void display() {
         title = "Cretaceous-Paleogene Extinction Event";
     } else {
         glColor3f(1.0f, 1.0f, 1.0f);
-        title = "Chapter 14: Jurassic Period - Age of Dinosaurs";
+        title = "Chapter 16: Jurassic Period - Age of Dinosaurs";
     }
     
     for (const char* c = title; *c; c++) {

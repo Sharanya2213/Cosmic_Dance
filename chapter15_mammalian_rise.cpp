@@ -136,34 +136,34 @@ void drawLeopard(float x, float z, float scale) {
     glTranslatef(x, 0.0f, z);
     glScalef(scale, scale, scale);
     
-    // Chest (front body)
+    // Chest (front body) - RAISED UP
     glColor3f(0.82f, 0.72f, 0.42f);
     glPushMatrix();
-    glTranslatef(0.3f, 0.2f, 0.0f);
+    glTranslatef(0.3f, 1.2f, 0.0f);
     glScalef(1.2f, 1.1f, 0.75f);
     glutSolidSphere(0.5f, 14, 14);
     glPopMatrix();
     
-    // Abdomen (main body)
+    // Abdomen (main body) - adjusted for raised body
     glColor3f(0.8f, 0.7f, 0.4f);
     glPushMatrix();
-    glTranslatef(-0.4f, 0.0f, 0.0f);
+    glTranslatef(-0.4f, 1.0f, 0.0f);
     glScalef(1.5f, 0.95f, 0.75f);
     glutSolidSphere(0.55f, 14, 14);
     glPopMatrix();
     
-    // Hindquarters
+    // Hindquarters - adjusted for raised body
     glColor3f(0.78f, 0.68f, 0.38f);
     glPushMatrix();
-    glTranslatef(-1.1f, -0.15f, 0.0f);
+    glTranslatef(-1.1f, 0.85f, 0.0f);
     glScalef(0.9f, 0.9f, 0.7f);
     glutSolidSphere(0.48f, 12, 12);
     glPopMatrix();
     
-    // Head
+    // Head - adjusted for raised body
     glColor3f(0.84f, 0.74f, 0.47f);
     glPushMatrix();
-    glTranslatef(1.3f, 0.5f, 0.0f);
+    glTranslatef(1.3f, 1.5f, 0.0f);
     glScalef(1.0f, 0.9f, 0.85f);
     glutSolidSphere(0.48f, 12, 12);
     
@@ -188,64 +188,53 @@ void drawLeopard(float x, float z, float scale) {
     glPopMatrix();
     glPopMatrix();
     
-    // Ears (tall, alert)
+    // Ears (tall, alert) - adjusted for raised body
     glColor3f(0.72f, 0.62f, 0.32f);
     glPushMatrix();
-    glTranslatef(1.5f, 1.0f, 0.2f);
+    glTranslatef(1.5f, 2.0f, 0.2f);
     glScalef(0.28f, 0.55f, 0.25f);
     glutSolidSphere(0.22f, 8, 8);
     glPopMatrix();
     
     glPushMatrix();
-    glTranslatef(1.5f, 1.0f, -0.2f);
+    glTranslatef(1.5f, 2.0f, -0.2f);
     glScalef(0.28f, 0.55f, 0.25f);
     glutSolidSphere(0.22f, 8, 8);
     glPopMatrix();
     
-    // Front left leg (muscular)
+    // Front left leg (muscular) - connects from body to ground
     glColor3f(0.76f, 0.66f, 0.36f);
     glPushMatrix();
-    glTranslatef(0.5f, -0.8f, 0.35f);
+    glTranslatef(0.5f, 0.2f, 0.35f);
     glScalef(0.32f, 1.6f, 0.32f);
     glutSolidSphere(0.3f, 10, 10);
     glPopMatrix();
     
-    // Front right leg
+    // Front right leg - connects from body to ground
     glPushMatrix();
-    glTranslatef(0.5f, -0.8f, -0.35f);
+    glTranslatef(0.5f, 0.2f, -0.35f);
     glScalef(0.32f, 1.6f, 0.32f);
     glutSolidSphere(0.3f, 10, 10);
     glPopMatrix();
     
-    // Back left leg
+    // Back left leg - connects from body to ground
     glPushMatrix();
-    glTranslatef(-0.9f, -0.8f, 0.38f);
+    glTranslatef(-0.9f, 0.2f, 0.38f);
     glScalef(0.33f, 1.55f, 0.33f);
     glutSolidSphere(0.3f, 10, 10);
     glPopMatrix();
     
-    // Back right leg
+    // Back right leg - connects from body to ground
     glPushMatrix();
-    glTranslatef(-0.9f, -0.8f, -0.38f);
+    glTranslatef(-0.9f, 0.2f, -0.38f);
     glScalef(0.33f, 1.55f, 0.33f);
     glutSolidSphere(0.3f, 10, 10);
     glPopMatrix();
     
-    // Rosette spots on body
-    glColor3f(0.5f, 0.4f, 0.1f);
-    for (int i = 0; i < 8; i++) {
-        float spotX = -0.5f + (i % 4) * 0.5f;
-        float spotZ = (i / 4) * 0.4f - 0.2f;
-        glPushMatrix();
-        glTranslatef(spotX, 0.3f, spotZ);
-        glutSolidSphere(0.15f, 6, 6);
-        glPopMatrix();
-    }
-    
-    // Tail (long, curved)
+    // Tail (long, curved) - adjusted for raised body
     glColor3f(0.76f, 0.66f, 0.36f);
     glPushMatrix();
-    glTranslatef(-1.6f, 0.1f, 0.0f);
+    glTranslatef(-1.6f, 1.1f, 0.0f);
     float tailSway = sinf(globalTime * 4.0f) * 15.0f;
     glRotatef(tailSway, 0.0f, 0.0f, 1.0f);
     glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
@@ -260,26 +249,26 @@ void drawHyena(float x, float z, float scale) {
     glTranslatef(x, 0.0f, z);
     glScalef(scale, scale, scale);
     
-    // Front shoulders (massive)
+    // Front shoulders (massive) - RAISED UP
     glColor3f(0.62f, 0.52f, 0.42f);
     glPushMatrix();
-    glTranslatef(0.2f, 0.15f, 0.0f);
+    glTranslatef(0.2f, 1.15f, 0.0f);
     glScalef(1.3f, 1.25f, 0.8f);
     glutSolidSphere(0.58f, 12, 12);
     glPopMatrix();
     
-    // Back body (sloped down)
+    // Back body (sloped down) - adjusted for raised body
     glColor3f(0.65f, 0.55f, 0.45f);
     glPushMatrix();
-    glTranslatef(-0.5f, -0.3f, 0.0f);
+    glTranslatef(-0.5f, 0.7f, 0.0f);
     glScalef(1.4f, 0.9f, 0.85f);
     glutSolidSphere(0.52f, 12, 12);
     glPopMatrix();
     
-    // Head (powerful jaws)
+    // Head (powerful jaws) - adjusted for raised body
     glColor3f(0.68f, 0.58f, 0.48f);
     glPushMatrix();
-    glTranslatef(1.1f, 0.6f, 0.0f);
+    glTranslatef(1.1f, 1.6f, 0.0f);
     glScalef(0.95f, 0.85f, 0.8f);
     glutSolidSphere(0.45f, 12, 12);
     
@@ -304,53 +293,53 @@ void drawHyena(float x, float z, float scale) {
     glPopMatrix();
     glPopMatrix();
     
-    // Ears (short, rounded, back-angled)
+    // Ears (short, rounded, back-angled) - adjusted for raised body
     glColor3f(0.58f, 0.48f, 0.38f);
     glPushMatrix();
-    glTranslatef(1.25f, 0.95f, 0.25f);
+    glTranslatef(1.25f, 1.95f, 0.25f);
     glScalef(0.25f, 0.4f, 0.25f);
     glutSolidSphere(0.2f, 8, 8);
     glPopMatrix();
     
     glPushMatrix();
-    glTranslatef(1.25f, 0.95f, -0.25f);
+    glTranslatef(1.25f, 1.95f, -0.25f);
     glScalef(0.25f, 0.4f, 0.25f);
     glutSolidSphere(0.2f, 8, 8);
     glPopMatrix();
     
-    // Front left leg (strong)
+    // Front left leg (strong) - connects from body to ground
     glColor3f(0.6f, 0.5f, 0.4f);
     glPushMatrix();
-    glTranslatef(0.4f, -0.85f, 0.38f);
+    glTranslatef(0.4f, 0.15f, 0.38f);
     glScalef(0.4f, 1.65f, 0.4f);
     glutSolidSphere(0.32f, 10, 10);
     glPopMatrix();
     
-    // Front right leg
+    // Front right leg - connects from body to ground
     glPushMatrix();
-    glTranslatef(0.4f, -0.85f, -0.38f);
+    glTranslatef(0.4f, 0.15f, -0.38f);
     glScalef(0.4f, 1.65f, 0.4f);
     glutSolidSphere(0.32f, 10, 10);
     glPopMatrix();
     
-    // Back left leg (longer, sloped)
+    // Back left leg (longer, sloped) - connects from body to ground
     glPushMatrix();
-    glTranslatef(-0.7f, -0.65f, 0.38f);
+    glTranslatef(-0.7f, 0.35f, 0.38f);
     glScalef(0.35f, 1.4f, 0.35f);
     glutSolidSphere(0.3f, 10, 10);
     glPopMatrix();
     
-    // Back right leg
+    // Back right leg - connects from body to ground
     glPushMatrix();
-    glTranslatef(-0.7f, -0.65f, -0.38f);
+    glTranslatef(-0.7f, 0.35f, -0.38f);
     glScalef(0.35f, 1.4f, 0.35f);
     glutSolidSphere(0.3f, 10, 10);
     glPopMatrix();
     
-    // Tail (stiff, short)
+    // Tail (stiff, short) - adjusted for raised body
     glColor3f(0.6f, 0.5f, 0.4f);
     glPushMatrix();
-    glTranslatef(-1.2f, 0.0f, 0.0f);
+    glTranslatef(-1.2f, 1.0f, 0.0f);
     glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
     glutSolidCone(0.16f, 0.8f, 8, 8);
     glPopMatrix();
@@ -363,26 +352,26 @@ void drawRhino(float x, float z, float scale) {
     glTranslatef(x, 0.0f, z);
     glScalef(scale, scale, scale);
     
-    // Front body (massive)
+    // Front body (massive) - RAISED UP
     glColor3f(0.48f, 0.43f, 0.38f);
     glPushMatrix();
-    glTranslatef(0.3f, 0.0f, 0.0f);
+    glTranslatef(0.3f, 1.35f, 0.0f);
     glScalef(1.6f, 1.35f, 1.05f);
     glutSolidSphere(0.7f, 16, 16);
     glPopMatrix();
     
-    // Back body (tapering)
+    // Back body (tapering) - adjusted for raised body
     glColor3f(0.5f, 0.45f, 0.4f);
     glPushMatrix();
-    glTranslatef(-0.8f, -0.1f, 0.0f);
+    glTranslatef(-0.8f, 1.25f, 0.0f);
     glScalef(1.35f, 1.2f, 0.95f);
     glutSolidSphere(0.6f, 14, 14);
     glPopMatrix();
     
-    // Head (blocky, powerful)
+    // Head (blocky, powerful) - adjusted for raised body
     glColor3f(0.52f, 0.47f, 0.42f);
     glPushMatrix();
-    glTranslatef(1.4f, 0.4f, 0.0f);
+    glTranslatef(1.4f, 1.75f, 0.0f);
     glScalef(1.1f, 1.0f, 1.0f);
     glutSolidSphere(0.52f, 14, 14);
     
@@ -407,49 +396,49 @@ void drawRhino(float x, float z, float scale) {
     glPopMatrix();
     glPopMatrix();
     
-    // Primary horn (large)
+    // Primary horn (large) - adjusted for raised body
     glColor3f(0.35f, 0.3f, 0.25f);
     glPushMatrix();
-    glTranslatef(2.05f, 0.65f, 0.0f);
+    glTranslatef(2.05f, 2.0f, 0.0f);
     glRotatef(12.0f, 0.0f, 0.0f, 1.0f);
     glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
     glutSolidCone(0.22f, 1.2f, 10, 10);
     glPopMatrix();
     
-    // Secondary horn/bump
+    // Secondary horn/bump - adjusted for raised body
     glColor3f(0.4f, 0.35f, 0.3f);
     glPushMatrix();
-    glTranslatef(1.65f, 0.0f, 0.0f);
+    glTranslatef(1.65f, 1.35f, 0.0f);
     glRotatef(-25.0f, 0.0f, 0.0f, 1.0f);
     glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
     glutSolidCone(0.15f, 0.7f, 8, 8);
     glPopMatrix();
     
-    // Front left leg (thick, columnar)
+    // Front left leg (thick, columnar) - connects from body to ground
     glColor3f(0.46f, 0.41f, 0.36f);
     glPushMatrix();
-    glTranslatef(0.6f, -0.95f, 0.5f);
+    glTranslatef(0.6f, 0.4f, 0.5f);
     glScalef(0.52f, 1.95f, 0.52f);
     glutSolidSphere(0.42f, 12, 12);
     glPopMatrix();
     
-    // Front right leg
+    // Front right leg - connects from body to ground
     glPushMatrix();
-    glTranslatef(0.6f, -0.95f, -0.5f);
+    glTranslatef(0.6f, 0.4f, -0.5f);
     glScalef(0.52f, 1.95f, 0.52f);
     glutSolidSphere(0.42f, 12, 12);
     glPopMatrix();
     
-    // Back left leg
+    // Back left leg - connects from body to ground
     glPushMatrix();
-    glTranslatef(-0.9f, -0.95f, 0.55f);
+    glTranslatef(-0.9f, 0.4f, 0.55f);
     glScalef(0.5f, 1.9f, 0.5f);
     glutSolidSphere(0.4f, 12, 12);
     glPopMatrix();
     
-    // Back right leg
+    // Back right leg - connects from body to ground
     glPushMatrix();
-    glTranslatef(-0.9f, -0.95f, -0.55f);
+    glTranslatef(-0.9f, 0.4f, -0.55f);
     glScalef(0.5f, 1.9f, 0.5f);
     glutSolidSphere(0.4f, 12, 12);
     glPopMatrix();
@@ -466,10 +455,10 @@ void drawRhino(float x, float z, float scale) {
     glLineWidth(1.0f);
     glEnd();
     
-    // Tail
+    // Tail - adjusted for raised body
     glColor3f(0.46f, 0.41f, 0.36f);
     glPushMatrix();
-    glTranslatef(-1.8f, -0.2f, 0.0f);
+    glTranslatef(-1.8f, 1.15f, 0.0f);
     float tailSway = sinf(globalTime * 3.0f) * 8.0f;
     glRotatef(tailSway, 0.0f, 0.0f, 1.0f);
     glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
@@ -484,18 +473,18 @@ void drawGiraffe(float x, float z, float scale) {
     glTranslatef(x, 0.0f, z);
     glScalef(scale, scale, scale);
     
-    // Body (rectangular)
+    // Body (rectangular) - RAISED UP
     glColor3f(0.78f, 0.63f, 0.38f);
     glPushMatrix();
-    glTranslatef(-0.1f, 0.3f, 0.0f);
+    glTranslatef(-0.1f, 1.3f, 0.0f);
     glScalef(1.4f, 1.1f, 0.8f);
     glutSolidSphere(0.58f, 14, 14);
     glPopMatrix();
     
-    // Neck (very long and thin)
+    // Neck (very long and thin) - adjusted for raised body
     glColor3f(0.8f, 0.65f, 0.4f);
     glPushMatrix();
-    glTranslatef(0.5f, 2.2f, 0.0f);
+    glTranslatef(0.5f, 3.2f, 0.0f);
     glScalef(0.4f, 2.4f, 0.4f);
     glutSolidSphere(0.3f, 12, 12);
     
@@ -510,10 +499,10 @@ void drawGiraffe(float x, float z, float scale) {
     }
     glPopMatrix();
     
-    // Head (small, narrow)
+    // Head (small, narrow) - adjusted for raised body
     glColor3f(0.84f, 0.69f, 0.44f);
     glPushMatrix();
-    glTranslatef(0.55f, 4.8f, 0.0f);
+    glTranslatef(0.55f, 5.8f, 0.0f);
     glScalef(0.7f, 0.75f, 0.65f);
     glutSolidSphere(0.32f, 10, 10);
     
@@ -530,84 +519,73 @@ void drawGiraffe(float x, float z, float scale) {
     glPopMatrix();
     glPopMatrix();
     
-    // Main ossicones (horns)
+    // Main ossicones (horns) - adjusted for raised body
     glColor3f(0.68f, 0.53f, 0.28f);
     glPushMatrix();
-    glTranslatef(0.35f, 5.35f, 0.18f);
+    glTranslatef(0.35f, 6.35f, 0.18f);
     glRotatef(20.0f, 1.0f, 0.0f, 0.0f);
     glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
     glutSolidCone(0.12f, 0.55f, 8, 8);
     glPopMatrix();
     
     glPushMatrix();
-    glTranslatef(0.35f, 5.35f, -0.18f);
+    glTranslatef(0.35f, 6.35f, -0.18f);
     glRotatef(20.0f, 1.0f, 0.0f, 0.0f);
     glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
     glutSolidCone(0.12f, 0.55f, 8, 8);
     glPopMatrix();
     
-    // Secondary ossicones (thinner)
+    // Secondary ossicones (thinner) - adjusted for raised body
     glColor3f(0.65f, 0.5f, 0.25f);
     glPushMatrix();
-    glTranslatef(0.5f, 5.15f, 0.0f);
+    glTranslatef(0.5f, 6.15f, 0.0f);
     glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
     glutSolidCone(0.08f, 0.35f, 6, 6);
     glPopMatrix();
     
-    // Front left leg (very long and thin)
+    // Front left leg (very long and thin) - connects from body to ground
     glColor3f(0.72f, 0.57f, 0.32f);
     glPushMatrix();
-    glTranslatef(0.2f, -0.5f, 0.35f);
+    glTranslatef(0.2f, 0.5f, 0.35f);
     glScalef(0.28f, 2.35f, 0.28f);
     glutSolidSphere(0.24f, 10, 10);
     glPopMatrix();
     
-    // Front right leg
+    // Front right leg - connects from body to ground
     glPushMatrix();
-    glTranslatef(0.2f, -0.5f, -0.35f);
+    glTranslatef(0.2f, 0.5f, -0.35f);
     glScalef(0.28f, 2.35f, 0.28f);
     glutSolidSphere(0.24f, 10, 10);
     glPopMatrix();
     
-    // Back left leg
+    // Back left leg - connects from body to ground
     glPushMatrix();
-    glTranslatef(-0.8f, -0.5f, 0.35f);
+    glTranslatef(-0.8f, 0.5f, 0.35f);
     glScalef(0.28f, 2.3f, 0.28f);
     glutSolidSphere(0.24f, 10, 10);
     glPopMatrix();
     
-    // Back right leg
+    // Back right leg - connects from body to ground
     glPushMatrix();
-    glTranslatef(-0.8f, -0.5f, -0.35f);
+    glTranslatef(-0.8f, 0.5f, -0.35f);
     glScalef(0.28f, 2.3f, 0.28f);
     glutSolidSphere(0.24f, 10, 10);
     glPopMatrix();
     
-    // Body spots
-    glColor3f(0.6f, 0.45f, 0.2f);
-    for (int i = 0; i < 6; i++) {
-        float spotX = -0.3f + (i % 3) * 0.35f;
-        float spotZ = (i / 3) * 0.35f - 0.18f;
-        glPushMatrix();
-        glTranslatef(spotX, 0.35f, spotZ);
-        glutSolidSphere(0.18f, 8, 8);
-        glPopMatrix();
-    }
-    
-    // Mane (dark line along neck)
+    // Mane (dark line along neck) - adjusted for raised body
     glColor3f(0.4f, 0.3f, 0.15f);
     glBegin(GL_LINE_STRIP);
     glLineWidth(1.5f);
-    for (float h = 0.5f; h <= 2.2f; h += 0.2f) {
+    for (float h = 1.5f; h <= 3.2f; h += 0.2f) {
         glVertex3f(0.75f, h, 0.0f);
     }
     glLineWidth(1.0f);
     glEnd();
     
-    // Tail (long with tuft)
+    // Tail (long with tuft) - adjusted for raised body
     glColor3f(0.72f, 0.57f, 0.32f);
     glPushMatrix();
-    glTranslatef(-1.3f, 0.0f, 0.0f);
+    glTranslatef(-1.3f, 1.3f, 0.0f);
     float tailSway = sinf(globalTime * 3.5f) * 12.0f;
     glRotatef(tailSway, 0.0f, 0.0f, 1.0f);
     glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
@@ -622,26 +600,26 @@ void drawAntelope(float x, float z, float scale) {
     glTranslatef(x, 0.0f, z);
     glScalef(scale, scale, scale);
     
-    // Chest (sleek)
+    // Chest (sleek) - RAISED UP
     glColor3f(0.72f, 0.62f, 0.42f);
     glPushMatrix();
-    glTranslatef(0.15f, 0.1f, 0.0f);
+    glTranslatef(0.15f, 1.1f, 0.0f);
     glScalef(1.1f, 0.95f, 0.7f);
     glutSolidSphere(0.48f, 12, 12);
     glPopMatrix();
     
-    // Back body (thinner)
+    // Back body (thinner) - adjusted for raised body
     glColor3f(0.7f, 0.6f, 0.4f);
     glPushMatrix();
-    glTranslatef(-0.5f, 0.0f, 0.0f);
+    glTranslatef(-0.5f, 1.0f, 0.0f);
     glScalef(1.2f, 0.8f, 0.65f);
     glutSolidSphere(0.45f, 10, 10);
     glPopMatrix();
     
-    // Head (graceful, narrow)
+    // Head (graceful, narrow) - adjusted for raised body
     glColor3f(0.74f, 0.64f, 0.44f);
     glPushMatrix();
-    glTranslatef(1.0f, 0.5f, 0.0f);
+    glTranslatef(1.0f, 1.5f, 0.0f);
     glScalef(0.85f, 0.8f, 0.72f);
     glutSolidSphere(0.37f, 10, 10);
     
@@ -666,24 +644,24 @@ void drawAntelope(float x, float z, float scale) {
     glPopMatrix();
     glPopMatrix();
     
-    // Ears (pointed, alert)
+    // Ears (pointed, alert) - adjusted for raised body
     glColor3f(0.68f, 0.58f, 0.38f);
     glPushMatrix();
-    glTranslatef(1.2f, 0.95f, 0.2f);
+    glTranslatef(1.2f, 1.95f, 0.2f);
     glScalef(0.25f, 0.5f, 0.22f);
     glutSolidSphere(0.2f, 8, 8);
     glPopMatrix();
     
     glPushMatrix();
-    glTranslatef(1.2f, 0.95f, -0.2f);
+    glTranslatef(1.2f, 1.95f, -0.2f);
     glScalef(0.25f, 0.5f, 0.22f);
     glutSolidSphere(0.2f, 8, 8);
     glPopMatrix();
     
-    // Horns (V-shaped, sharp)
+    // Horns (V-shaped, sharp) - adjusted for raised body
     glColor3f(0.45f, 0.35f, 0.15f);
     glPushMatrix();
-    glTranslatef(1.15f, 0.9f, 0.16f);
+    glTranslatef(1.15f, 1.9f, 0.16f);
     glRotatef(35.0f, 0.0f, 0.0f, 1.0f);
     glRotatef(20.0f, 1.0f, 0.0f, 0.0f);
     glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
@@ -691,55 +669,46 @@ void drawAntelope(float x, float z, float scale) {
     glPopMatrix();
     
     glPushMatrix();
-    glTranslatef(1.15f, 0.9f, -0.16f);
+    glTranslatef(1.15f, 1.9f, -0.16f);
     glRotatef(-35.0f, 0.0f, 0.0f, 1.0f);
     glRotatef(20.0f, 1.0f, 0.0f, 0.0f);
     glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
     glutSolidCone(0.09f, 0.75f, 8, 8);
     glPopMatrix();
     
-    // Front left leg (very thin, elegant)
+    // Front left leg (very thin, elegant) - connects from body to ground
     glColor3f(0.68f, 0.58f, 0.38f);
     glPushMatrix();
-    glTranslatef(0.25f, -0.7f, 0.28f);
+    glTranslatef(0.25f, 0.3f, 0.28f);
     glScalef(0.26f, 1.45f, 0.26f);
     glutSolidSphere(0.22f, 8, 8);
     glPopMatrix();
     
-    // Front right leg
+    // Front right leg - connects from body to ground
     glPushMatrix();
-    glTranslatef(0.25f, -0.7f, -0.28f);
+    glTranslatef(0.25f, 0.3f, -0.28f);
     glScalef(0.26f, 1.45f, 0.26f);
     glutSolidSphere(0.22f, 8, 8);
     glPopMatrix();
     
-    // Back left leg
+    // Back left leg - connects from body to ground
     glPushMatrix();
-    glTranslatef(-0.65f, -0.7f, 0.28f);
+    glTranslatef(-0.65f, 0.3f, 0.28f);
     glScalef(0.26f, 1.42f, 0.26f);
     glutSolidSphere(0.22f, 8, 8);
     glPopMatrix();
     
-    // Back right leg
+    // Back right leg - connects from body to ground
     glPushMatrix();
-    glTranslatef(-0.65f, -0.7f, -0.28f);
+    glTranslatef(-0.65f, 0.3f, -0.28f);
     glScalef(0.26f, 1.42f, 0.26f);
     glutSolidSphere(0.22f, 8, 8);
     glPopMatrix();
     
-    // White belly stripe
-    glColor3f(0.95f, 0.95f, 0.9f);
-    glBegin(GL_QUADS);
-    glVertex3f(-0.3f, 0.1f, -0.08f);
-    glVertex3f(-0.3f, 0.1f, 0.08f);
-    glVertex3f(0.8f, 0.1f, 0.08f);
-    glVertex3f(0.8f, 0.1f, -0.08f);
-    glEnd();
-    
-    // Tail (thin, tufted)
+    // Tail (thin, tufted) - adjusted for raised body
     glColor3f(0.6f, 0.5f, 0.3f);
     glPushMatrix();
-    glTranslatef(-1.25f, 0.05f, 0.0f);
+    glTranslatef(-1.25f, 1.05f, 0.0f);
     float tailSway = sinf(globalTime * 6.0f) * 15.0f;
     glRotatef(tailSway, 0.0f, 0.0f, 1.0f);
     glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
@@ -797,14 +766,17 @@ void display() {
     glLoadIdentity();
     glOrtho(0, 800, 600, 0, -1, 1);
     glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
+    
+    // Draw Chapter Title text in black
     glPushMatrix();
     glLoadIdentity();
     
     glDisable(GL_LIGHTING);
     glDisable(GL_DEPTH_TEST);
-    glColor3f(0.3f, 0.5f, 0.2f);
+    glColor3f(0.0f, 0.0f, 0.0f);
     glRasterPos2f(200, 50);
-    const char* title = "Chapter 16: Mammalian Rise - African Savanna";
+    const char* title = "Chapter 15: Cretaceous Period - Rise of Mammals";
     for (const char* c = title; *c; c++) {
         glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, *c);
     }
@@ -827,8 +799,7 @@ void reshape(int w, int h) {
 }
 
 void timer(int v) {
-    globalTime += 0.016f;
-    glutPostRedisplay();
+    globalTime += 0.016f;    if (globalTime >= 18.0f) exit(0);    glutPostRedisplay();
     glutTimerFunc(16, timer, 0);
 }
 
@@ -860,7 +831,7 @@ int main(int argc, char** argv) {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
     glutInitWindowSize(800, 600);
-    glutCreateWindow("Chapter 16: Mammalian Rise");
+    glutCreateWindow("Chapter 15: Cretaceous Period - Rise of Mammals");
     
     init();
     

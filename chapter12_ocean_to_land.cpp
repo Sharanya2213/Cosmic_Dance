@@ -429,7 +429,7 @@ void display() {
         } else {
             // Walking on land
             fishX += fishSpeed * 0.6f;
-            fishY = -0.1f + sinf(globalTime * 2.8f) * 0.08f;  // Walk on ground with body bob
+            fishY = 0.25f + sinf(globalTime * 2.8f) * 0.08f;  // Walk on ground with body bob
         }
     }
     // If fishX >= 1.5, fish stays in final position (animation ends)
@@ -458,29 +458,22 @@ void display() {
     
     glDisable(GL_LIGHTING);
     glDisable(GL_DEPTH_TEST);
-    glColor4f(0.7f, 0.9f, 1.0f, 0.95f);
-    glRasterPos2f(50, 50);
-    const char* title = "Life Moves from Ocean to Land";
-    for (const char* c = title; *c; c++) {
-        glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, *c);
+    
+    // Draw Chapter Title in top-left corner
+    float titleAlpha = 1.0f;
+    if (globalTime < 0.5f) {
+        titleAlpha = globalTime / 0.5f;
+    } else if (globalTime > 24.5f) {
+        titleAlpha = (25.0f - globalTime) / 0.5f;
     }
     
-    glRasterPos2f(50, 80);
-    const char* status = isWalking ? "Status: TERRESTRIAL TETRAPOD - Limb-based locomotion" : "Status: AQUATIC - Fin-based locomotion";
-    for (const char* c = status; *c; c++) {
-        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
-    }
-    
-    glRasterPos2f(50, 110);
-    const char* evolution = isWalking ? "Evolutionary Stage: Late Devonian tetrapod" : "Evolutionary Stage: Early fish with developing limbs";
-    for (const char* c = evolution; *c; c++) {
-        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, *c);
-    }
-    
-    glRasterPos2f(50, 135);
-    const char* adaptation = isWalking ? "Adaptation: Terrestrial colonization" : "Adaptation: Aquatic environment mastery";
-    for (const char* c = adaptation; *c; c++) {
-        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, *c);
+    if (titleAlpha > 0.0f) {
+        glColor4f(1.0f, 1.0f, 1.0f, titleAlpha);
+        glRasterPos2f(20, 40);
+        const char* chapterTitle = "Chapter 12: Devonian Period - Life Moves to Land";
+        for (const char* c = chapterTitle; *c; c++) {
+            glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, *c);
+        }
     }
     
     glEnable(GL_DEPTH_TEST);
@@ -503,6 +496,7 @@ void reshape(int w, int h) {
 
 void timer(int value) {
     globalTime += 0.016f;
+    if (globalTime >= 18.0f) exit(0);
     glutPostRedisplay();
     glutTimerFunc(16, timer, 0);
 }

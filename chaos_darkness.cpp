@@ -501,9 +501,9 @@ void drawTitleText() {
         alpha = (4.5f - globalTime) / 0.5f; // Fade out
     }
     
-    // Pulsing glow effect - yellow/white for Big Bang
+    // Pulsing glow effect - white for bold appearance
     float glow = 1.0f + sin(globalTime * 4.0f) * 0.3f;
-    glColor4f(1.0f, 0.9f, 0.3f, alpha * glow);
+    glColor4f(1.0f, 1.0f, 1.0f, alpha * glow);
     
     // Disable depth test for text rendering
     glDisable(GL_DEPTH_TEST);
@@ -517,7 +517,7 @@ void drawTitleText() {
     glPushMatrix();
     glLoadIdentity();
     
-    drawText(-0.25f, 0.3f, -0.9f, "THE BIG BANG", GLUT_BITMAP_TIMES_ROMAN_24);
+    drawText(-0.95f, 0.90f, -0.9f, "Chapter 1: Chaos and Darkness", GLUT_BITMAP_TIMES_ROMAN_24);
     
     // Restore matrices
     glPopMatrix();

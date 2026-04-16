@@ -300,6 +300,38 @@ void display() {
     drawDustClouds();
     drawSun();
     drawPlanets();
+
+    // Draw Chapter Title in top-left corner
+    float titleAlpha = 1.0f;
+    if (globalTime < 0.5f) {
+        titleAlpha = globalTime / 0.5f;
+    } else if (globalTime > 24.5f) {
+        titleAlpha = (25.0f - globalTime) / 0.5f;
+    }
+    
+    if (titleAlpha > 0.0f) {
+        glDisable(GL_DEPTH_TEST);
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
+        glLoadIdentity();
+        glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+        glLoadIdentity();
+        
+        glColor4f(1.0f, 1.0f, 1.0f, titleAlpha);
+        glRasterPos2f(-0.95f, 0.90f);
+        const char* titleText = "Chapter 6: Formation of the Solar System";
+        for (const char* c = titleText; *c; c++) {
+            glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, *c);
+        }
+        
+        glPopMatrix();
+        glMatrixMode(GL_PROJECTION);
+        glPopMatrix();
+        glMatrixMode(GL_MODELVIEW);
+        glEnable(GL_DEPTH_TEST);
+    }
     
     glutSwapBuffers();
 }

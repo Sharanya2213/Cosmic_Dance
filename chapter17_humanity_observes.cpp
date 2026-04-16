@@ -788,6 +788,32 @@ void display() {
         drawNarrativeText();
     }
     
+    // Draw Chapter Title in top-left corner
+    float titleAlpha = 1.0f;
+    if (globalTime < 0.5f) {
+        titleAlpha = globalTime / 0.5f;
+    } else if (globalTime > 24.5f) {
+        titleAlpha = (25.0f - globalTime) / 0.5f;
+    }
+    
+    if (titleAlpha > 0.0f) {
+        glDisable(GL_DEPTH_TEST);
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
+        glLoadIdentity();
+        glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+        glLoadIdentity();
+        
+        
+        glPopMatrix();
+        glMatrixMode(GL_PROJECTION);
+        glPopMatrix();
+        glMatrixMode(GL_MODELVIEW);
+        glEnable(GL_DEPTH_TEST);
+    }
+    
     // Draw Carl Sagan quote on black screen (after 3.5s)
     drawSaganQuote();
     
@@ -804,6 +830,12 @@ void reshape(int width, int height) {
 
 void timer(int value) {
     globalTime += 0.016f;
+    
+    // Auto-exit after 30 seconds for continuous playback
+    if (globalTime >= 30.0f) {
+        exit(0);
+    }
+    
     glutPostRedisplay();
     glutTimerFunc(16, timer, 0);
 }

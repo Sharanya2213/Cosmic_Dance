@@ -8,10 +8,10 @@ LDFLAGS = -lopengl32 -lglu32 -lfreeglut
 # Output executables
 TARGET1 = chapter1_chaos.exe
 TARGET2 = chapter2_bigbang.exe
-TARGET3 = chapter3_accurate_solar.exe
-TARGET4 = nebula_genesis.exe
+TARGET3 = nebula_genesis.exe
+TARGET4 = cosmic_observer.exe
 TARGET5 = galaxy_milkyway.exe
-TARGET6 = cosmic_observer.exe
+TARGET6 = chapter3_accurate_solar.exe
 TARGET7 = emergence_of_life.exe
 TARGET8 = first_cells.exe
 TARGET9 = multicellular_organism.exe
@@ -26,10 +26,10 @@ TARGET17 = chapter17_humanity_observes.exe
 # Source files
 SOURCES1 = chaos_darkness.cpp
 SOURCES2 = chapter2_bigbang.cpp
-SOURCES3 = chapter3_accurate_solar.cpp
-SOURCES4 = nebula_genesis.cpp
+SOURCES3 = nebula_genesis.cpp
+SOURCES4 = cosmic_observer.cpp
 SOURCES5 = galaxy_milkyway.cpp
-SOURCES6 = cosmic_observer.cpp
+SOURCES6 = chapter3_accurate_solar.cpp
 SOURCES7 = emergence_of_life.cpp
 SOURCES8 = first_cells.cpp
 SOURCES9 = multicellular_organism.cpp
@@ -118,67 +118,63 @@ $(TARGET17): $(OBJECTS17)
 run1: $(TARGET1)
 	./$(TARGET1)
 
-# Run Chapter 2
+# Run Chapter 2: The Big Bang — Birth of the Universe
 run2: $(TARGET2)
 	./$(TARGET2)
 
-# Run Accurate Solar System
+# Run Chapter 3: Stellar Nurseries — Nebula Genesis
 run3: $(TARGET3)
 	./$(TARGET3)
 
-# Run Chapter 13: Volcanic Island
-run13: $(TARGET13)
-	./$(TARGET13)
-
-# Run Nebula Genesis
+# Run Chapter 4: The Cosmic Observer
 run4: $(TARGET4)
 	./$(TARGET4)
 
-# Run Milky Way Galaxy
+# Run Chapter 5: The Milky Way Galaxy
 run5: $(TARGET5)
 	./$(TARGET5)
 
-# Run Cosmic Observer
+# Run Chapter 6: Formation of the Solar System
 run6: $(TARGET6)
 	./$(TARGET6)
 
-# Run Emergence of Life
+# Run Chapter 7: Precambrian Era — Emergence of Life
 run7: $(TARGET7)
 	./$(TARGET7)
 
-# Run First Cells
+# Run Chapter 8: Precambrian — The First Cells
 run8: $(TARGET8)
 	./$(TARGET8)
 
-# Run Multicellular Organism
+# Run Chapter 9: Precambrian — Multicellular Life
 run9: $(TARGET9)
 	./$(TARGET9)
 
-# Run Early Organism Movement
+# Run Chapter 10: Cambrian Period — Explosion of Life
 run10: $(TARGET10)
 	./$(TARGET10)
 
-# Run Early Complex Organism Formation
+# Run Chapter 11: Ordovician–Silurian — Complex Marine Life
 run11: $(TARGET11)
 	./$(TARGET11)
 
-# Run Life Moves from Ocean to Land
+# Run Chapter 12: Devonian Period — Life Moves to Land
 run12: $(TARGET12)
 	./$(TARGET12)
 
-# Run Land with Volcanoes & Gymnosperms
+# Run Chapter 13: Carboniferous Period — Forests and Amphibians
 run13: $(TARGET13)
 	./$(TARGET13)
 
-# Run Age of Dinosaurs
+# Run Chapter 14: Jurassic Period — Age of Dinosaurs
 run14: $(TARGET14)
 	./$(TARGET14)
 
-# Run Mammalian Rise
+# Run Chapter 15: Cretaceous Period — Rise of Mammals
 run15: $(TARGET15)
 	./$(TARGET15)
 
-# Run Humanity Observes the Beginning
+# Run Chapter 17: Humanity Observes the Universe
 run17: $(TARGET17)
 	./$(TARGET17)
 

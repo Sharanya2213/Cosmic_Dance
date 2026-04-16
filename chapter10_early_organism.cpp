@@ -325,6 +325,38 @@ void display() {
     glMatrixMode(GL_MODELVIEW);
     glPopMatrix();
     
+    // Draw Chapter Title in top-left corner
+    float titleAlpha = 1.0f;
+    if (globalTime < 0.5f) {
+        titleAlpha = globalTime / 0.5f;
+    } else if (globalTime > 24.5f) {
+        titleAlpha = (25.0f - globalTime) / 0.5f;
+    }
+    
+    if (titleAlpha > 0.0f) {
+        glDisable(GL_DEPTH_TEST);
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
+        glLoadIdentity();
+        glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+        glLoadIdentity();
+        
+        glColor4f(1.0f, 1.0f, 1.0f, titleAlpha);
+        glRasterPos2f(-0.95f, 0.90f);
+        const char* titleText = "Chapter 10: Cambrian Period - Explosion of Life";
+        for (const char* c = titleText; *c; c++) {
+            glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, *c);
+        }
+        
+        glPopMatrix();
+        glMatrixMode(GL_PROJECTION);
+        glPopMatrix();
+        glMatrixMode(GL_MODELVIEW);
+        glEnable(GL_DEPTH_TEST);
+    }
+    
     glutSwapBuffers();
 }
 
@@ -338,6 +370,7 @@ void reshape(int w, int h) {
 
 void timer(int value) {
     globalTime += 0.016f;
+    if (globalTime >= 18.0f) exit(0);
     glutPostRedisplay();
     glutTimerFunc(16, timer, 0);
 }

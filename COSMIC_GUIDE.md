@@ -330,3 +330,5 @@ This project was created to visualize the grand narrative of Earth's history—f
 The progression moves from simple to complex, mirroring actual evolutionary complexity increase over time. Animations are smooth at 60 FPS with proper physics approximations for natural motion.
 
 Enjoy the Cosmic Dance!
+
+<!-- powershell -ExecutionPolicy Bypass -File .\run_continuous.ps1 -->

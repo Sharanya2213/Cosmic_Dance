@@ -266,7 +266,7 @@ void drawFish(float x, float y, float z, bool isWalking) {
         
     } else {
         // ===== TERRESTRIAL FORM =====
-        // Robust tetrapod with four strong limbs
+        // Robust tetrapod with four strong limbs - LIFTED FROM GROUND
         
         // Large prominent head
         glPushMatrix();
@@ -329,7 +329,7 @@ void drawFish(float x, float y, float z, bool isWalking) {
         }
         glEnable(GL_LIGHTING);
         
-        // ===== FOUR LIMBS =====
+        // ===== FOUR LIMBS - CONNECT FROM BODY TO GROUND =====
         GLUquadric* quad = gluNewQuadric();
         
         // FRONT LEFT LIMB

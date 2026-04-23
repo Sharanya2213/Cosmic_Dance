@@ -152,6 +152,9 @@ GLuint createProgram(const char* vertexSrc, const char* fragmentSrc) {
 
 const int WINDOW_WIDTH = 1600;
 const int WINDOW_HEIGHT = 1000;
+const float STORY_DURATION = 25.0f;
+const float TARGET_SCENE_DURATION = 18.75f;
+const float TIME_SCALE = STORY_DURATION / TARGET_SCENE_DURATION;
 const int NUM_PARTICLES = 100000;  // Reduced from 1M for CPU-GPU balance
 
 float globalTime = 0.0f;
@@ -194,10 +197,10 @@ void initBigBangScene() {
     for (int i = 0; i < NUM_PARTICLES; ++i) {
         Particle p;
         
-        // Launch from center outward
+        // Launch from center outward - MUCH FASTER for violent burst
         float angle = (rand() % 360) * 3.14159f / 180.0f;
         float phi = (rand() % 360) * 3.14159f / 180.0f;
-        float speed = 0.5f + (rand() % 100) / 100.0f;
+        float speed = 2.0f + (rand() % 300) / 100.0f;  // 2.0-5.0 units/sec (was 0.5-1.5)
         
         p.position = Vec3(0.0f, 0.0f, 0.0f);
         p.velocity = Vec3(
@@ -206,23 +209,23 @@ void initBigBangScene() {
             cos(phi) * speed
         );
         
-        // Temperature spectrum colors: white→yellow→orange→blue-white
+        // Temperature spectrum colors: BRIGHT WHITE/GOLDEN for intense explosion
         float tempFactor = rand() % 100 / 100.0f;
-        if(tempFactor < 0.25f) {
-            // White
+        if(tempFactor < 0.4f) {
+            // Bright white (50% of particles)
             p.color = Vec3(1.0f, 1.0f, 1.0f);
-        } else if(tempFactor < 0.5f) {
-            // Yellow
-            p.color = Vec3(1.0f, 1.0f, 0.0f);
-        } else if(tempFactor < 0.75f) {
-            // Orange
-            p.color = Vec3(1.0f, 0.5f, 0.0f);
+        } else if(tempFactor < 0.7f) {
+            // Golden yellow
+            p.color = Vec3(1.0f, 0.95f, 0.3f);
+        } else if(tempFactor < 0.85f) {
+            // Orange-gold
+            p.color = Vec3(1.0f, 0.6f, 0.1f);
         } else {
-            // Blue-white
-            p.color = Vec3(0.5f, 0.8f, 1.0f);
+            // Hot orange
+            p.color = Vec3(1.0f, 0.4f, 0.0f);
         }
         
-        p.alpha = 0.8f;
+        p.alpha = 1.0f;  // Start full bright
         p.lifetime = 0.0f;
         p.type = 0;  // Plasma
         
@@ -328,9 +331,9 @@ void drawBigBangScene() {
     // Keep background BLACK throughout
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     
-    // MASSIVE SHOCKWAVE effect (2.5 seconds - extended!)
-    if (bangTime < 2.5f) {
-        float progress = bangTime / 2.5f;
+    // MASSIVE SHOCKWAVE effect (3.0 seconds - extended for more impact!)
+    if (bangTime < 3.0f) {
+        float progress = bangTime / 3.0f;
         
         // Radial gradient shockwave with multiple layers
         glDisable(GL_DEPTH_TEST);
@@ -342,16 +345,53 @@ void drawBigBangScene() {
         glPushMatrix();
         glLoadIdentity();
         
-        // BRIGHT CORE - intense white explosion at center
-        float coreSize = 0.15f + progress * 0.1f;
-        glPointSize(coreSize * 200.0f);
-        glColor4f(1.0f, 1.0f, 1.0f, 0.9f);
+        // SUPERCHARGED CORE - ULTRA BRIGHT white explosion at center
+        float coreSize = 0.2f + progress * 0.15f;  // Larger core
+        glPointSize(coreSize * 300.0f);  // MUCH BIGGER point
+        glColor4f(1.0f, 1.0f, 0.95f, 1.0f);  // Almost fully opaque white-gold
         glBegin(GL_POINTS);
         glVertex2f(0.0f, 0.0f);
         glEnd();
         
+        // ADDITIONAL SUPER-BRIGHT CORE LAYERS for ultra glow
+        for (int coreLayer = 0; coreLayer < 3; ++coreLayer) {
+            float layerSize = coreSize * (0.7f - coreLayer * 0.2f);
+            float layerAlpha = 0.4f / (coreLayer + 1);
+            glPointSize(layerSize * 250.0f);
+            glColor4f(1.0f, 1.0f, 0.85f, layerAlpha);
+            glBegin(GL_POINTS);
+            glVertex2f(0.0f, 0.0f);
+            glEnd();
+        }
+        
+        // MASSIVE HORIZONTAL BEAM/DISK EFFECT (like reference image)
+        if (progress < 1.0f) {
+            // Draw horizontal expanding disk
+            float diskRadius = progress * 2.2f;
+            float diskThickness = 0.15f + progress * 0.2f;
+            
+            // Central bright beam along X-Y plane
+            glLineWidth(5.0f);
+            glColor4f(1.0f, 1.0f, 0.8f, (1.0f - progress) * 0.8f);
+            
+            // Horizontal expanding disk with radiating spikes
+            int diskSegments = 24;
+            for (int seg = 0; seg < diskSegments; ++seg) {
+                float angle = (seg / (float)diskSegments) * 2.0f * 3.14159f;
+                float x1 = cos(angle) * diskRadius * 0.3f;
+                float y1 = sin(angle) * diskRadius * 0.3f;
+                float x2 = cos(angle) * diskRadius;
+                float y2 = sin(angle) * diskRadius;
+                glBegin(GL_LINES);
+                glVertex2f(x1, y1);
+                glVertex2f(x2, y2);
+                glEnd();
+            }
+            glLineWidth(1.0f);
+        }
+        
         // MULTIPLE EXPANDING RINGS - each with color gradient
-        int totalRings = 80;
+        int totalRings = 120;  // INCREASED from 80 for more density
         for (int i = 0; i < totalRings; ++i) {
             float ringProgress = progress * (i / (float)totalRings);
             float ringAlpha = (1.0f - ringProgress) * 0.8f;
@@ -413,7 +453,7 @@ void drawBigBangScene() {
         
         // SHOCK WAVE BLAST RADIAL BANDS - extra visual depth
         glLineWidth(3.0f);
-        int blastBands = 12;
+        int blastBands = 24;  // DOUBLED from 12
         for (int band = 0; band < blastBands; ++band) {
             float bandProgress = progress * 0.8f;
             float bandAlpha = (1.0f - bandProgress) * 0.6f;
@@ -446,14 +486,16 @@ void drawBigBangScene() {
         glEnable(GL_DEPTH_TEST);
     }
     
-    // Draw plasma particles with enhanced depth
-    glPointSize(5.0f);
+    // Draw plasma particles with EXTREME brightness during burst
+    glPointSize(8.0f);  // LARGER particles
     glBegin(GL_POINTS);
     for (const auto& p : particles) {
-        // Brighten particles during explosion for more visibility
-        float brightness = 1.0f;
-        if (bangTime < 3.0f) {
-            brightness = 1.0f + sin(bangTime * 5.0f) * 0.4f;
+        // MUCH BRIGHTER particles during explosion
+        float brightness = 1.2f;  // Base brightness increased
+        if (bangTime < 2.0f) {
+            brightness = 1.5f + sin(bangTime * 8.0f) * 0.5f;  // INTENSE pulsing
+        } else if (bangTime < 3.0f) {
+            brightness = 1.3f + sin(bangTime * 5.0f) * 0.3f;
         }
         
         glColor4f(p.color.x * brightness, p.color.y * brightness, p.color.z * brightness, p.alpha);
@@ -461,13 +503,23 @@ void drawBigBangScene() {
     }
     glEnd();
     
-    // Draw halos around particles for glow depth effect
-    glPointSize(12.0f);
+    // Draw MULTIPLE HALO LAYERS for extreme glow effect
+    // Layer 1: Medium halos
+    glPointSize(18.0f);
     glBegin(GL_POINTS);
     for (const auto& p : particles) {
-        // Halo color same as particle but much more transparent
-        float hazeAlpha = p.alpha * 0.15f;
-        glColor4f(p.color.x * 0.8f, p.color.y * 0.8f, p.color.z * 0.8f, hazeAlpha);
+        float hazeAlpha = p.alpha * 0.25f;  // Increased from 0.15f
+        glColor4f(p.color.x * 0.9f, p.color.y * 0.9f, p.color.z * 0.9f, hazeAlpha);
+        glVertex3f(p.position.x, p.position.y, p.position.z);
+    }
+    glEnd();
+    
+    // Layer 2: Large atmospheric glow
+    glPointSize(30.0f);
+    glBegin(GL_POINTS);
+    for (const auto& p : particles) {
+        float hazeAlpha = p.alpha * 0.12f;
+        glColor4f(p.color.x * 0.7f, p.color.y * 0.7f, p.color.z * 0.7f, hazeAlpha);
         glVertex3f(p.position.x, p.position.y, p.position.z);
     }
     glEnd();
@@ -624,48 +676,16 @@ void display() {
     updateBigBangScene();
     drawBigBangScene();
     
-    // Draw Chapter Title in top-left corner
-    float titleAlpha = 1.0f;
-    if (globalTime < 0.5f) {
-        titleAlpha = globalTime / 0.5f; // Fade in
-    } else if (globalTime > 24.5f) {
-        titleAlpha = (25.0f - globalTime) / 0.5f; // Fade out
-    }
-    
-    if (titleAlpha > 0.0f) {
-        glDisable(GL_DEPTH_TEST);
-        glMatrixMode(GL_PROJECTION);
-        glPushMatrix();
-        glLoadIdentity();
-        glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
-        glMatrixMode(GL_MODELVIEW);
-        glPushMatrix();
-        glLoadIdentity();
-        
-        glColor4f(1.0f, 1.0f, 1.0f, titleAlpha);
-        glRasterPos2f(-0.95f, 0.90f);
-        const char* titleText = "Chapter 2: The Big Bang";
-        for (const char* c = titleText; *c; c++) {
-            glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, *c);
-        }
-        
-        glPopMatrix();
-        glMatrixMode(GL_PROJECTION);
-        glPopMatrix();
-        glMatrixMode(GL_MODELVIEW);
-        glEnable(GL_DEPTH_TEST);
-    }
-    
     glutSwapBuffers();
 }
 
 void idle() {
-    globalTime += deltaTime;
+    globalTime += deltaTime * TIME_SCALE;
     
-    // Auto-stop Chapter 2 after 25 seconds
-    if (globalTime > 25.0f) {
+    // Hold final frame after story timeline completes (real runtime ~= 5 minutes).
+    if (globalTime > STORY_DURATION) {
         std::cout << "Chapter 2 complete. Big Bang evolution finished." << std::endl;
-        globalTime = 25.0f;  // Hold at 25 seconds
+        globalTime = STORY_DURATION;
     }
     
     glutPostRedisplay();
@@ -701,7 +721,6 @@ int main(int argc, char** argv) {
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
     glutKeyboardFunc(keyboard);
-    glutIdleFunc(idle);
     
     init();
     

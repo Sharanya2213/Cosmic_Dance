@@ -1,4 +1,4 @@
-# Compiled executables
+# Compiled executables and object files
 *.exe
 *.o
 *.out
@@ -28,3 +28,25 @@ Thumbs.db
 # Local configuration
 *.local
 config.local
+
+# Old/Unused project files
+chaos_darkness.cpp
+cosmic_observer.cpp
+emergence_of_life.cpp
+first_cells.cpp
+galaxy_milkyway.cpp
+multicellular_organism.cpp
+nebula_genesis.cpp
+run3.cpp
+COSMIC_DANCE_MASTER_README.md
+COSMIC_GUIDE.md
+
+# System Architecture Documentation (for report only)
+System_Architecture_Diagram.md
+System_Architecture_Diagram.svg
+Architecture_Diagram_ASCII.txt
+
+# Backup files
+*.bak
+*.backup
+*_backup.cpp

@@ -5,6 +5,16 @@ CXX = g++
 CXXFLAGS = -std=c++11 -O2 -Wall
 LDFLAGS = -lopengl32 -lglu32 -lfreeglut
 
+# Master full animation executable
+MASTER_TARGET = COSMIC_DANCE_MASTER.exe
+MASTER_SOURCE = COSMIC_DANCE_MASTER.cpp
+MASTER_OBJECT = $(MASTER_SOURCE:.cpp=.o)
+
+# Complete animation (real code from chapters)
+COMPLETE_TARGET = COSMIC_DANCE_COMPLETE.exe
+COMPLETE_SOURCE = COSMIC_DANCE_COMPLETE.cpp
+COMPLETE_OBJECT = $(COMPLETE_SOURCE:.cpp=.o)
+
 # Output executables
 TARGET1 = chapter1_chaos.exe
 TARGET2 = chapter2_bigbang.exe
@@ -59,7 +69,15 @@ OBJECTS15 = $(SOURCES15:.cpp=.o)
 OBJECTS17 = $(SOURCES17:.cpp=.o)
 
 # Default target - build all
-all: $(TARGET1) $(TARGET2) $(TARGET3) $(TARGET4) $(TARGET5) $(TARGET6) $(TARGET7) $(TARGET8) $(TARGET9) $(TARGET10) $(TARGET11) $(TARGET12) $(TARGET13) $(TARGET14) $(TARGET15) $(TARGET17)
+all: $(COMPLETE_TARGET) $(MASTER_TARGET) $(TARGET1) $(TARGET2) $(TARGET3) $(TARGET4) $(TARGET5) $(TARGET6) $(TARGET7) $(TARGET8) $(TARGET9) $(TARGET10) $(TARGET11) $(TARGET12) $(TARGET13) $(TARGET14) $(TARGET15) $(TARGET17)
+
+# Complete animation compilation
+$(COMPLETE_TARGET): $(COMPLETE_OBJECT)
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
+
+# Master compilation
+$(MASTER_TARGET): $(MASTER_OBJECT)
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
 # Linking chapters
 $(TARGET1): $(OBJECTS1)
@@ -117,6 +135,34 @@ $(TARGET17): $(OBJECTS17)
 # Run Chapter 1
 run1: $(TARGET1)
 	./$(TARGET1)
+
+# ========== MASTER: Run Full Animation (All Chapters 1-17) ==========
+complete: $(COMPLETE_TARGET)
+	./$(COMPLETE_TARGET)
+
+runcomplete: $(COMPLETE_TARGET)
+	./$(COMPLETE_TARGET)
+
+# Integrated animation with EXACT chapter code
+INTEGRATED_TARGET = COSMIC_DANCE_INTEGRATED.exe
+INTEGRATED_SOURCE = COSMIC_DANCE_INTEGRATED.cpp
+INTEGRATED_OBJECT = $(INTEGRATED_SOURCE:.cpp=.o)
+
+integrated: $(INTEGRATED_TARGET)
+	./$(INTEGRATED_TARGET)
+
+$(INTEGRATED_TARGET): $(INTEGRATED_OBJECT)
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
+
+runintegrated: integrated
+
+master: $(MASTER_TARGET)
+	./$(MASTER_TARGET)
+
+runmaster: $(MASTER_TARGET)
+	./$(MASTER_TARGET)
+
+# ===================================================================
 
 # Run Chapter 2: The Big Bang — Birth of the Universe
 run2: $(TARGET2)
@@ -180,6 +226,6 @@ run17: $(TARGET17)
 
 # Clean build files
 clean:
-	del $(OBJECTS1) $(OBJECTS2) $(OBJECTS3) $(OBJECTS4) $(OBJECTS5) $(OBJECTS6) $(OBJECTS7) $(OBJECTS8) $(OBJECTS9) $(OBJECTS10) $(OBJECTS11) $(OBJECTS12) $(OBJECTS13) $(OBJECTS14) $(OBJECTS15) $(OBJECTS17) $(TARGET1) $(TARGET2) $(TARGET3) $(TARGET4) $(TARGET5) $(TARGET6) $(TARGET7) $(TARGET8) $(TARGET9) $(TARGET10) $(TARGET11) $(TARGET12) $(TARGET13) $(TARGET14) $(TARGET15) $(TARGET17) 2>nul
+	del $(COMPLETE_OBJECT) $(COMPLETE_TARGET) $(MASTER_OBJECT) $(MASTER_TARGET) $(OBJECTS1) $(OBJECTS2) $(OBJECTS3) $(OBJECTS4) $(OBJECTS5) $(OBJECTS6) $(OBJECTS7) $(OBJECTS8) $(OBJECTS9) $(OBJECTS10) $(OBJECTS11) $(OBJECTS12) $(OBJECTS13) $(OBJECTS14) $(OBJECTS15) $(OBJECTS17) $(TARGET1) $(TARGET2) $(TARGET3) $(TARGET4) $(TARGET5) $(TARGET6) $(TARGET7) $(TARGET8) $(TARGET9) $(TARGET10) $(TARGET11) $(TARGET12) $(TARGET13) $(TARGET14) $(TARGET15) $(TARGET17) 2>nul
 # Phony targets
-.PHONY: all run1 run2 run3 run4 run5 run6 run7 run8 run9 run10 run11 run12 run13 run14 run15 run17 clean
+.PHONY: all run1 run2 run3 run4 run5 run6 run7 run8 run9 run10 run11 run12 run13 run14 run15 run17 clean master runmaster complete runcomplete
